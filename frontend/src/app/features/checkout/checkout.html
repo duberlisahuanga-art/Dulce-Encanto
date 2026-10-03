@@ -1,0 +1,138 @@
+<main>
+  <header>
+    <p>Último paso</p>
+    <h1>Finalizar pedido</h1>
+    <span>Confirma cómo y cuándo deseas recibir tu compra.</span>
+  </header>
+  @if (loading()) {
+    <p class="status">Cargando…</p>
+  } @else if (!cart()?.items?.length) {
+    <section class="empty">
+      <h2>Tu carrito está vacío</h2>
+      <a routerLink="/catalogo">Volver al catálogo</a>
+    </section>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <section>
+        <h2>Datos de entrega</h2>
+        <div class="fields">
+          <label
+            >Fecha de entrega<input
+              type="date"
+              formControlName="delivery_date"
+              [min]="minimumDate()"
+              [attr.aria-invalid]="showError(form.controls.delivery_date)"
+              aria-describedby="delivery-date-error" />
+              @if (showError(form.controls.delivery_date)) {
+                <small class="field-error" id="delivery-date-error" role="alert">
+                  @if (form.controls.delivery_date.hasError('required')) { Selecciona una fecha de entrega. }
+                  @else if (form.controls.delivery_date.hasError('blocked')) { Esta fecha no está disponible. Elige otra. }
+                  @else { Elige una fecha desde el {{ minimumDate() }}. }
+                </small>
+              }
+              @if (fieldServerError('delivery_date')) { <small class="field-error" role="alert">{{ fieldServerError('delivery_date') }}</small> }
+            </label
+          ><label>Teléfono<input
+              type="tel"
+              inputmode="numeric"
+              autocomplete="tel"
+              maxlength="9"
+              formControlName="phone"
+              placeholder="999999999"
+              (input)="filterPhone($event)"
+              [attr.aria-invalid]="showError(form.controls.phone)"
+              aria-describedby="phone-error" />
+              @if (showError(form.controls.phone)) {
+                <small class="field-error" id="phone-error" role="alert">
+                  @if (form.controls.phone.hasError('required')) { Ingresa tu número de teléfono. }
+                  @else { El teléfono debe tener exactamente 9 números. }
+                </small>
+              }
+              @if (fieldServerError('phone')) { <small class="field-error" role="alert">{{ fieldServerError('phone') }}</small> }
+            </label>
+        </div>
+        <h3>Método y programación</h3>
+        <div class="methods">
+          @if (!cart()?.free_delivery) {
+            <label [class.active]="form.controls.delivery_method.value === 'pickup'"
+              ><input type="radio" formControlName="delivery_method" value="pickup" />🏪 Recojo en tienda</label>
+          }
+          <label [class.active]="form.controls.delivery_method.value === 'delivery'"
+            ><input type="radio" formControlName="delivery_method" value="delivery" />🛵
+            Delivery</label
+          >
+        </div>
+        @if (showError(form.controls.delivery_method)) { <small class="field-error" role="alert">Selecciona cómo deseas recibir el pedido.</small> }
+        @if (fieldServerError('delivery_method')) { <small class="field-error" role="alert">{{ fieldServerError('delivery_method') }}</small> }
+        @if (cart()?.free_delivery) { <p class="schedule-note">Tu cupón de envío gratis se aplica únicamente a pedidos con delivery.</p> }
+        <p class="schedule-note">Tu pedido queda programado para el día seleccionado arriba.</p>
+        @if (form.controls.delivery_method.value === 'delivery') {
+          @if (addresses().length) { <label>Dirección guardada<select [value]="selectedAddressId() ?? ''" (change)="useAddress($any($event.target).value)"><option value="">Usar otra dirección</option>@for (address of addresses(); track address.id) { <option [value]="address.id">{{ address.label }}{{ address.is_default ? ' · Predeterminada' : '' }}</option> }</select></label> }
+          <label>Zona de reparto<select formControlName="delivery_zone_id" [attr.aria-invalid]="showError(form.controls.delivery_zone_id)"><option [value]="0">Selecciona una zona</option>@for (zone of deliveryConfig()?.zones ?? []; track zone.id) { <option [value]="zone.id">{{ zone.name }} — {{ +zone.fee | currency: 'PEN' : 'S/ ' : '1.2-2' }}</option> }</select>
+            @if (showError(form.controls.delivery_zone_id)) { <small class="field-error" role="alert">Selecciona una zona de reparto.</small> }
+            @if (fieldServerError('delivery_zone_id')) { <small class="field-error" role="alert">{{ fieldServerError('delivery_zone_id') }}</small> }
+          </label>
+          <app-location-picker [point]="point()" [center]="storePoint()" [maximumDistanceKm]="maximumDeliveryDistance()" (selected)="selectPoint($event)" (addressFound)="form.controls.address.setValue($event)" />
+          <p class="coverage-note">Realizamos delivery hasta {{ maximumDeliveryDistance() }} km desde la tienda. Selecciona el punto exacto en el mapa.</p>
+          @if (coverage()) { <p role="status">{{ coverage() }}</p> }
+          <label
+            >Dirección<input formControlName="address" maxlength="255" autocomplete="street-address" placeholder="Dirección y referencia" [attr.aria-invalid]="showError(form.controls.address)" />
+            @if (showError(form.controls.address)) {
+              <small class="field-error" role="alert">
+                @if (form.controls.address.hasError('required')) { Ingresa la dirección de entrega. }
+                @else if (form.controls.address.hasError('outsideCoverage')) { La ubicación seleccionada está fuera de nuestra zona de delivery. }
+                @else { La dirección no puede superar los 255 caracteres. }
+              </small>
+            }
+            @if (fieldServerError('address')) { <small class="field-error" role="alert">{{ fieldServerError('address') }}</small> }
+          </label>
+        }
+        <label
+          >Notas <span class="optional">(opcional)</span><textarea formControlName="notes" maxlength="1000" placeholder="Indicaciones adicionales" [attr.aria-invalid]="showError(form.controls.notes)"></textarea>
+          @if (showError(form.controls.notes)) { <small class="field-error" role="alert">Las notas no pueden superar los 1000 caracteres.</small> }
+          @if (fieldServerError('notes')) { <small class="field-error" role="alert">{{ fieldServerError('notes') }}</small> }
+        </label>
+        <h3>Forma de pago</h3>
+        <div class="methods">
+          @for (
+            method of [
+              ['cash', 'Contra entrega'],
+              ['yape', 'Yape'],
+              ['plin', 'Plin'],
+              ['transfer', 'Transferencia'],
+            ];
+            track method[0]
+          ) {
+            <label [class.active]="form.controls.payment_method.value === method[0]">
+              <input type="radio" formControlName="payment_method" [value]="method[0]" />{{
+                method[1]
+              }}
+            </label>
+          }
+        </div>
+        @if (showError(form.controls.payment_method)) { <small class="field-error" role="alert">Selecciona una forma de pago.</small> }
+        @if (fieldServerError('payment_method')) { <small class="field-error" role="alert">{{ fieldServerError('payment_method') }}</small> }
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+      </section>
+      <aside>
+        <h2>Resumen</h2>
+        @for (item of cart()!.items; track item.id) {
+          <div class="line">
+            <span>{{ item.quantity }} × {{ item.name }}</span
+            ><strong>{{ +item.subtotal | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+          </div>
+        }
+        @if (+cart()!.discount > 0) { <div class="line"><span>Descuentos</span><strong>− {{ +cart()!.discount | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong></div> }
+        @if (form.controls.delivery_method.value === 'delivery') { @for (zone of deliveryConfig()?.zones ?? []; track zone.id) { @if (zone.id === +form.controls.delivery_zone_id.value) { <div class="line"><span>Envío · {{ zone.name }}</span><strong>{{ cart()!.free_delivery ? 'Gratis por cupón' : (+zone.fee | currency: 'PEN' : 'S/ ' : '1.2-2') }}</strong></div> } } }
+        <div class="total">
+          <span>Total</span
+          ><strong>{{ +cart()!.total + selectedFee() | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+        </div>
+        <button [disabled]="saving()">{{ saving() ? 'Registrando…' : 'Confirmar pedido' }}</button
+        ><a routerLink="/carrito">Volver al carrito</a>
+      </aside>
+    </form>
+  }
+</main>

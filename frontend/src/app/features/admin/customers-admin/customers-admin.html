@@ -1,0 +1,68 @@
+<main>
+  <header>
+    <div>
+      <p>Administración</p>
+      <h1>Clientes</h1>
+      <span>Consulta registros e historial de compras.</span>
+    </div>
+    <form (submit)="$event.preventDefault(); load()">
+      <input
+        type="search"
+        placeholder="Nombre o correo"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      /><button>Buscar</button>
+    </form>
+  </header>
+  @if (loading()) {
+    <p class="status">Cargando…</p>
+  } @else if (error()) {
+    <p class="status error">{{ error() }}</p>
+  } @else {
+    <section class="cards">
+      @for (customer of customers(); track customer.id) {
+        <article>
+          <span class="avatar">{{ customer.name.charAt(0).toUpperCase() }}</span>
+          <div>
+            <h2>{{ customer.name }}</h2>
+            <p>{{ customer.email }}</p>
+            <small>Desde {{ customer.registered_at | date: 'dd/MM/yyyy' }}</small>
+          </div>
+          <div class="metric">
+            <strong>{{ customer.orders_count }}</strong
+            ><small>Pedidos</small>
+          </div>
+          <div class="metric">
+            <strong>{{ +customer.total_spent | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong
+            ><small>Compras entregadas</small>
+          </div>
+          <button (click)="view(customer)">Ver historial</button>
+        </article>
+      } @empty {
+        <p class="status">No se encontraron clientes.</p>
+      }
+    </section>
+  }
+  @if (selected(); as customer) {
+    <div class="backdrop" (click)="selected.set(null)">
+      <section class="detail" (click)="$event.stopPropagation()">
+        <button class="close" (click)="selected.set(null)">×</button>
+        <h2>{{ customer.name }}</h2>
+        <p>{{ customer.email }}</p>
+        <h3>Historial de pedidos</h3>
+        @for (order of customer.orders ?? []; track order.id) {
+          <article>
+            <div>
+              <strong>{{ order.number }}</strong
+              ><small>{{ order.placed_at | date: 'dd/MM/yyyy HH:mm' }}</small>
+            </div>
+            <span>{{ order.status }}</span
+            ><strong>{{ +order.total | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+          </article>
+        } @empty {
+          <p>Este cliente todavía no tiene pedidos.</p>
+        }
+      </section>
+    </div>
+  }
+</main>

@@ -1,0 +1,169 @@
+main {
+  max-width: 72rem;
+  margin: auto;
+  padding: 3rem clamp(1rem, 4vw, 3rem);
+}
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+header p {
+  color: #a34f68;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+h1,
+h2 {
+  color: #4a2932;
+  font-family: Georgia, serif;
+}
+h1 {
+  margin: 0.4rem;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+}
+header span,
+label {
+  color: #76505b;
+}
+form {
+  display: grid;
+  grid-template-columns: 1fr 22rem;
+  gap: 1.5rem;
+  align-items: start;
+}
+section,
+aside,
+.empty {
+  padding: 1.5rem;
+  border: 1px solid #ead6db;
+  border-radius: 1rem;
+  background: white;
+}
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+label {
+  display: grid;
+  gap: 0.4rem;
+  margin: 1rem 0;
+  font-weight: 700;
+}
+input,
+textarea,
+select {
+  padding: 0.75rem;
+  border: 1px solid #d8bdc5;
+  border-radius: 0.65rem;
+  font: inherit;
+}
+input[aria-invalid='true'],
+textarea[aria-invalid='true'],
+select[aria-invalid='true'] {
+  border-color: #b42345;
+  outline: 2px solid rgb(180 35 69 / 12%);
+}
+.field-error {
+  color: #a11f40;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.optional {
+  color: #8d747b;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+textarea {
+  min-height: 6rem;
+}
+.methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.methods label {
+  display: block;
+  padding: 1rem;
+  border: 2px solid #ead6db;
+  border-radius: 0.7rem;
+}
+.methods label.active {
+  border-color: #a34f68;
+  background: #fff6f8;
+}
+.methods input {
+  margin-right: 0.5rem;
+}
+.line,
+.total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #eee;
+}
+.total {
+  margin-top: 1rem;
+  font-size: 1.25rem;
+}
+.total strong {
+  color: #8f3f59;
+}
+aside button,
+.empty a {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 0;
+  border-radius: 0.7rem;
+  color: white;
+  background: #8f3f59;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+aside > a {
+  display: block;
+  margin-top: 0.8rem;
+  color: #8f3f59;
+  text-align: center;
+}
+.error {
+  border-left: 4px solid #b42345;
+  border-radius: 0.45rem;
+  padding: 0.7rem;
+  color: #9e2945;
+  background: #fdebef;
+}
+.empty,
+.status {
+  text-align: center;
+}
+@media (max-width: 750px) {
+  form {
+    grid-template-columns: 1fr;
+  }
+  .fields,
+  .methods {
+    grid-template-columns: 1fr;
+  }
+}
+.schedule-note {
+  margin: -0.2rem 0 1rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
+  color: #765b63;
+  background: #fff4f6;
+  font-size: 0.88rem;
+}
+.coverage-note {
+  margin: .4rem 0 1rem;
+  color: #765b63;
+  font-size: .82rem;
+  font-weight: 700;
+}

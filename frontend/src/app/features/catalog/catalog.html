@@ -1,0 +1,339 @@
+<main>
+  <section class="catalog-hero">
+    <div class="hero-copy">
+      <p>Pastelería artesanal</p>
+      <h1>Encuentra tu próximo antojo</h1>
+      <span>Tortas, cupcakes y postres preparados con dedicación para celebrar tus mejores momentos.</span>
+      <div class="hero-actions">
+        <a href="#productos">Ver catálogo →</a>
+        <a routerLink="/disena-tu-torta">Diseñar mi torta</a>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <span class="hero-plate"></span>
+      @if (heroProduct()?.image_url) {
+        <img class="hero-dessert" [src]="heroProduct()!.image_url" [alt]="heroProduct()!.name" (error)="imageFailed($event)" />
+      } @else {
+        <span class="hero-dessert placeholder">🎂</span>
+      }
+      <span class="hero-sparkle sparkle-one">✦</span>
+      <span class="hero-sparkle sparkle-two">♡</span>
+      <span class="hero-sparkle sparkle-three">✧</span>
+      <div class="floating-card card-one"><small>Promo</small><strong>{{ featuredPromotion() ? (featuredPromotion()!.discount_type === 'percentage' ? featuredPromotion()!.discount_value + '% dscto.' : 'S/ ' + featuredPromotion()!.discount_value + ' dscto.') : 'Ofertas' }}</strong></div>
+      <div class="floating-card card-two"><small>Delivery</small><strong>Programado</strong></div>
+      <div class="floating-card card-three"><small>Favorito</small><strong>{{ heroProduct()?.name ?? 'Dulce Encanto' }}</strong></div>
+      @if (heroProducts().length > 1) {
+        <div class="hero-dots" aria-label="Productos destacados">
+          @for (product of heroProducts(); track product.id; let index = $index) {
+            <button
+              type="button"
+              [class.active]="index === heroIndex()"
+              (click)="chooseHeroProduct(index)"
+              [attr.aria-label]="'Mostrar ' + product.name"
+            ></button>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (featuredPromotion(); as promotion) {
+    <section class="promotion-strip">
+        <article class="promotion-featured">
+          <div>
+          <span>Promoción destacada</span><strong>{{ promotion.name }}</strong>
+          <p>{{ promotion.description }}</p>
+          <b
+            >{{
+              promotion.discount_type === 'percentage'
+                ? promotion.discount_value + '%'
+                : 'S/ ' + promotion.discount_value
+            }}
+            de descuento</b
+          >
+          @if (promotion.requires_coupon) {
+            <p class="strip-coupon">
+              Usa el cupón <strong>{{ promotion.coupon_code }}</strong>
+              @if (+promotion.minimum_purchase > 0) {
+                · Compra mínima {{ +promotion.minimum_purchase | currency: 'PEN' : 'symbol' : '1.2-2' }}
+              }
+            </p>
+          } @else {
+            <p class="strip-automatic">✓ Se aplica automáticamente</p>
+          }
+          </div>
+          @if (promotion.banner_url || heroProduct()?.image_url) {
+            <img [src]="promotion.banner_url || heroProduct()!.image_url" [alt]="promotion.name" (error)="imageFailed($event)" />
+          }
+        </article>
+      @for (promotion of secondaryPromotions(); track promotion.id) {
+        <article class="promotion-mini">
+          <span>Promoción</span><strong>{{ promotion.name }}</strong>
+          <p>{{ promotion.description }}</p>
+        </article>
+      }
+    </section>
+  }
+
+  @if (loading()) {
+    <p class="status">Cargando productos…</p>
+  } @else if (error()) {
+    <p class="status error">{{ error() }}</p>
+  } @else {
+    <section class="category-showcase" aria-labelledby="category-title">
+      <div class="section-heading">
+        <div>
+          <small>Explora</small>
+          <h2 id="category-title">¿Qué estás buscando hoy?</h2>
+        </div>
+      </div>
+      <div class="category-grid">
+        @for (category of categories(); track category.id) {
+          <button
+            type="button"
+            class="category-card"
+            [class.active]="selectedCategory() === category.id"
+            (click)="chooseCategory(category.id)"
+          >
+            <span class="category-image">
+              @if (categoryImage(category)) {
+                <img
+                  [src]="categoryImage(category)!"
+                  [alt]="category.name"
+                  (error)="imageFailed($event)"
+                />
+              }
+              <b>🍰</b>
+            </span>
+            <strong>{{ category.name }}</strong>
+            <small>{{ category.products?.length ?? 0 }} productos</small>
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="shop" id="productos">
+      <div class="shop-toolbar">
+        <button type="button" class="filter-toggle" (click)="filtersOpen.set(!filtersOpen())">
+          ☰ Filtros
+        </button>
+        <p>
+          <strong>{{ filteredProducts().length }}</strong> productos encontrados
+        </p>
+        <label
+          >Ordenar por
+          <select [value]="sort()" (change)="updateSort($any($event.target).value)">
+            <option value="featured">Recomendados</option>
+            <option value="price-asc">Menor precio</option>
+            <option value="price-desc">Mayor precio</option>
+            <option value="name">Nombre</option>
+          </select>
+        </label>
+      </div>
+
+      @if (message()) {
+        <p class="notice success">✓ {{ message() }} <a routerLink="/carrito">Ver carrito</a></p>
+      }
+      @if (actionError()) {
+        <p class="notice error">{{ actionError() }}</p>
+      }
+
+      <div class="shop-layout">
+        <aside [class.open]="filtersOpen()">
+          <div class="aside-title">
+            <h2>Filtros</h2>
+            <button type="button" (click)="filtersOpen.set(false)">×</button>
+          </div>
+          <label class="search-label"
+            >Buscar<input
+              type="search"
+              placeholder="Nombre del producto"
+              [value]="search()"
+              (input)="updateSearch($any($event.target).value)"
+          /></label>
+          <div class="filter-group">
+            <h3>Categorías</h3>
+            <button
+              type="button"
+              [class.active]="selectedCategory() === null"
+              (click)="chooseCategory(null)"
+            >
+              <span>Todos</span><b>{{ products().length }}</b>
+            </button>
+            @for (category of categories(); track category.id) {
+              <button
+                type="button"
+                [class.active]="selectedCategory() === category.id"
+                (click)="chooseCategory(category.id)"
+              >
+                <span>{{ category.name }}</span
+                ><b>{{ category.products?.length ?? 0 }}</b>
+              </button>
+            }
+          </div>
+          <div class="filter-group">
+            <h3>Precio máximo</h3>
+            <input
+              type="range"
+              min="0"
+              [max]="500"
+              step="5"
+              [value]="maximumPrice()"
+              (input)="updateMaximumPrice(+$any($event.target).value)"
+            />
+            <p>
+              Hasta <strong>{{ maximumPrice() | currency: 'PEN' : 'symbol' : '1.0-0' }}</strong>
+            </p>
+          </div>
+          <button type="button" class="reset" (click)="resetFilters()">Limpiar filtros</button>
+        </aside>
+
+        <div class="product-results">
+        <div class="product-grid">
+          @for (product of visibleProducts(); track product.id) {
+            <article>
+              <div
+                class="product-image"
+                role="button"
+                tabindex="0"
+                (click)="selectedProduct.set(product)"
+                (keydown.enter)="selectedProduct.set(product)"
+                [attr.aria-label]="'Ver ' + product.name"
+              >
+                @if (auth.authenticated()) {
+                  <button
+                    type="button"
+                    class="favorite-toggle"
+                    [class.active]="favorites.isFavorite(product.id)"
+                    (click)="toggleFavorite(product, $event)"
+                    [attr.aria-label]="
+                      favorites.isFavorite(product.id)
+                        ? 'Quitar de favoritos'
+                        : 'Agregar a favoritos'
+                    "
+                  >
+                    {{ favorites.isFavorite(product.id) ? '♥' : '♡' }}
+                  </button>
+                }
+                @if (product.image_url) {
+                  <img
+                    [src]="product.image_url"
+                    [alt]="product.name"
+                    (error)="imageFailed($event)"
+                  />
+                }
+                <span>🧁</span>
+                @if (product.promotion || product.coupon_promotion) {
+                  <b class="discount-ribbon">{{ discountLabel(product) }}</b>
+                } @else {
+                  <em>Disponible</em>
+                }
+              </div>
+              <div class="product-content">
+                <small>{{ product.category?.name ?? 'Dulce Encanto' }}</small
+                ><a class="product-name" [routerLink]="['/catalogo', product.slug]">
+                  {{ product.name }}
+                </a>
+                <p>{{ product.description || 'Preparado artesanalmente para ti.' }}</p>
+                <div class="product-footer">
+                  <div class="price-stack">
+                    @if (product.promotion; as promotion) {
+                      <small class="offer-tag">{{ promotion.name }}</small>
+                      <span class="price-row">
+                        <del>{{ +product.price | currency: 'PEN' : 'symbol' : '1.2-2' }}</del>
+                        <strong>{{ displayPrice(product) | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+                      </span>
+                      <small class="savings">Ahorras {{ +promotion.discount | currency: 'PEN' : 'symbol' : '1.2-2' }}</small>
+                    } @else {
+                      <strong>{{ +product.price | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+                      @if (product.coupon_promotion; as coupon) {
+                        <small class="coupon-tag">Cupón {{ coupon.coupon_code }}: {{ discountLabel(product) }}</small>
+                      }
+                    }
+                  </div>
+                  @if (auth.authenticated()) {
+                    <app-product-quantity [productId]="product.id" />
+                  } @else {
+                    <a routerLink="/ingresar">Ingresar para comprar</a>
+                  }
+                </div>
+              </div>
+            </article>
+          } @empty {
+            <div class="empty">
+              <span>🔎</span>
+              <h2>No encontramos productos</h2>
+              <p>Prueba cambiando la búsqueda o los filtros.</p>
+              <button type="button" (click)="resetFilters()">Ver todos</button>
+            </div>
+          }
+        </div>
+        @if (visibleProducts().length < filteredProducts().length) {
+          <div class="catalog-more">
+            <p>Mostrando {{ visibleProducts().length }} de {{ filteredProducts().length }} productos</p>
+            <button type="button" (click)="showMore()">Ver más productos</button>
+          </div>
+        }
+        </div>
+      </div>
+    </section>
+  }
+</main>
+
+<app-floating-cart-summary />
+
+@if (selectedProduct(); as product) {
+  <div class="modal-backdrop" (click)="selectedProduct.set(null)">
+    <section
+      class="product-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="product.name"
+      (click)="$event.stopPropagation()"
+    >
+      <button class="modal-close" (click)="selectedProduct.set(null)">×</button>
+      <div class="modal-image">
+        @if (product.image_url) {
+          <img [src]="product.image_url" [alt]="product.name" />
+        } @else {
+          <span>🧁</span>
+        }
+      </div>
+      <div class="modal-content">
+        @if (auth.authenticated()) {
+          <button
+            type="button"
+            class="favorite-inline"
+            [class.active]="favorites.isFavorite(product.id)"
+            (click)="toggleFavorite(product, $event)"
+          >
+            {{ favorites.isFavorite(product.id) ? '♥ Guardado en favoritos' : '♡ Guardar favorito' }}
+          </button>
+        }
+        <small>{{ product.category?.name }}</small>
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        @if (product.promotion; as promotion) {
+          <div class="modal-offer">
+            <span class="offer-tag">{{ promotion.name }}</span>
+            <div><del>{{ +product.price | currency: 'PEN' : 'symbol' : '1.2-2' }}</del><strong>{{ displayPrice(product) | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong></div>
+            <p>Ahorras {{ +promotion.discount | currency: 'PEN' : 'symbol' : '1.2-2' }}. Vigente hasta {{ promotion.ends_at }}.</p>
+          </div>
+        } @else {
+          <strong>{{ +product.price | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+          @if (product.coupon_promotion; as coupon) {
+            <p class="coupon-callout">Usa el cupón <b>{{ coupon.coupon_code }}</b> para obtener {{ discountLabel(product) }}. @if (+coupon.minimum_purchase > 0) { Compra mínima: {{ +coupon.minimum_purchase | currency: 'PEN' : 'symbol' : '1.2-2' }}. }</p>
+          }
+        }
+        <a class="detail-link" [routerLink]="['/catalogo', product.slug]"
+          >Ver información completa</a
+        >
+        @if (auth.authenticated()) {
+          <app-product-quantity [productId]="product.id" />
+        } @else {
+          <a routerLink="/ingresar">Inicia sesión para comprar</a>
+        }
+      </div>
+    </section>
+  </div>
+}

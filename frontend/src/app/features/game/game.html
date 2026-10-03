@@ -1,0 +1,147 @@
+<main class="game-page">
+  @if (view() !== 'playing') {
+    <header class="page-header">
+      <span class="eyebrow">Dulce Encanto · Juego</span>
+      <h1>{{ settings()?.name || 'Juego de entregas' }}</h1>
+      <p>{{ settings()?.description || 'Lleva la torta a salvo hasta el cliente.' }}</p>
+      <div class="balance">🍬 {{ profile()?.balance ?? 0 }} Dulce Puntos</div>
+    </header>
+  }
+
+  @if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+  @if (info()) { <p class="notice" role="status">{{ info() }}</p> }
+  @if (loading()) {
+    <section class="panel center"><p>Cargando el juego…</p><button type="button" class="secondary" (click)="loadHome()">Reintentar</button></section>
+  } @else if (!settings()?.is_active) {
+    <section class="panel center"><h2>El juego está en pausa</h2><p>Vuelve pronto para jugar otra entrega.</p><a routerLink="/catalogo" class="button">Ir a la tienda</a></section>
+  } @else {
+    @switch (view()) {
+      @case ('home') {
+        <section class="welcome panel">
+          <div>
+            <span class="eyebrow">Tu próxima misión</span>
+            <h2>Una torta, un destino y mucho cuidado</h2>
+            <p>Conduce por la ciudad, esquiva obstáculos y recoge ayudas. Cada entrega completa puede darte puntos para canjear descuentos reales.</p>
+            <div class="actions">
+              <button type="button" class="button" (click)="view.set('levels')">Elegir nivel →</button>
+              <button type="button" class="secondary" (click)="openRewards()">Mis recompensas</button>
+              <button type="button" class="text-button" (click)="openHistory()">Historial</button>
+            </div>
+          </div>
+          <div class="welcome-art" aria-hidden="true"><span>🛵</span><span>🎂</span><span>🏠</span></div>
+        </section>
+        <section class="how-to panel">
+          <h2>Cómo jugar</h2>
+          <p>En el nivel Barrio la moto avanza sola: usa ↑ y ↓ para cambiar de carril, → para tomar impulso y ← para frenar. En celular, arrastra el control. Esquiva los obstáculos y protege la torta hasta llegar al cliente.</p>
+          <div class="legend"><span>⏱️ Más tiempo</span><span>🛡️ Protección</span><span>❤️ Reparación</span><span>🍬 Monedas</span></div>
+        </section>
+      }
+      @case ('levels') {
+        <div class="section-heading"><h2>Elige tu recorrido</h2><button type="button" class="text-button" (click)="view.set('home')">← Inicio</button></div>
+        <div class="level-grid">
+          @for (level of levels(); track level.id) {
+            <article class="level-card panel">
+              <span class="eyebrow">Nivel {{ level.sort_order + 1 }} · {{ level.difficulty }}</span>
+              <h3>{{ level.name }}</h3>
+              <p>{{ level.description }}</p>
+              <div class="level-meta"><span>⏱ {{ level.time_limit }} s</span><span>🍬 Hasta {{ level.dulce_points_reward }}</span><span>🚧 {{ level.obstacle_count }} obstáculos</span></div>
+              <p class="best">Mejor marca: {{ level.best_score || 0 }} · {{ stars(level.best_stars || 0) }}</p>
+              <button type="button" class="button" (click)="choose(level)">Jugar nivel</button>
+            </article>
+          }
+        </div>
+      }
+      @case ('intro') {
+        @if (selected(); as level) {
+          <section class="panel mission">
+            <span class="eyebrow">Nueva entrega virtual</span>
+            <h2>{{ level.name }}</h2>
+            <div class="mission-details"><p><strong>Cliente</strong><span>Destino del juego</span></p><p><strong>Pedido</strong><span>Torta de celebración 🎂</span></p><p><strong>Tiempo</strong><span>{{ level.time_limit }} segundos</span></p><p><strong>Recompensa potencial</strong><span>{{ level.dulce_points_reward }} Dulce Puntos</span></p></div>
+            <p>La puntuación y los premios se validan al terminar. Tienes {{ settings()?.max_daily_attempts }} intentos por día.</p>
+            <div class="actions"><button type="button" class="button" [disabled]="busy()" (click)="begin()">{{ busy() ? 'Preparando…' : 'Iniciar entrega' }}</button><button type="button" class="secondary" (click)="view.set('levels')">Cambiar nivel</button></div>
+          </section>
+        }
+      }
+      @case ('playing') {
+        <section class="play-panel">
+          <div class="mission-bar">
+            <div><span class="eyebrow">Entrega en curso</span><strong>{{ selected()?.name || 'Ruta de reparto' }}</strong></div>
+            <div class="route-progress" aria-label="Progreso hacia el cliente"><span [style.width.%]="frame().progress"></span></div>
+            <span>{{ frame().progress }} % del recorrido</span>
+          </div>
+          <div class="hud" aria-label="Estado de la entrega">
+            <span><small>Tiempo</small>⏱ <strong>{{ frame().remaining }} s</strong></span>
+            <span [class.danger]="frame().health <= 30"><small>Estado de la torta</small>🎂 <strong>{{ frame().health }} %</strong></span>
+            <span><small>Puntos de ruta</small>⭐ <strong>{{ frame().score }}</strong></span>
+            <span><small>Dulces recogidos</small>🍬 <strong>{{ frame().coins }}</strong></span>
+          </div>
+          <div class="map-wrap">
+            @if (attempt()?.scenario?.mode === 'runner') {
+              <div #gameStage class="phaser-stage" role="img" aria-label="Juego de reparto: conduce por la ciudad, esquiva obstáculos y llega al cliente"></div>
+            } @else {
+              <canvas #gameCanvas role="img" aria-label="Mapa del juego: conduce desde la tienda hasta la casa del cliente y esquiva obstáculos"></canvas>
+            }
+            <div class="map-tip">
+              <span class="desktop-tip">{{ attempt()?.scenario?.mode === 'runner' ? '↑↓ cambia de carril · → impulso · ← frena' : 'Muévete con WASD o las flechas' }}</span>
+              <span class="touch-tip">Usa el control para conducir</span>
+            </div>
+            @if (attempt()?.scenario?.mode === 'runner') { <div class="pace-status">🛵 {{ frame().pace }}</div> }
+            @if (frame().shield) { <div class="power-status" role="status">🛡️ Protección activa</div> }
+            @if (frame().message) { <div class="game-feedback" role="status">{{ frame().message }}</div> }
+            @if (paused()) { <div class="pause-overlay"><strong>Partida pausada</strong><p>Puedes pausar hasta 30 segundos en total.</p><button type="button" class="button" [disabled]="busy()" (click)="resume()">Continuar</button></div> }
+            @if (pendingInputs) {
+              <div class="finish-overlay" role="status">
+                <span aria-hidden="true">🏁</span>
+                <strong>¡Llegaste al cliente!</strong>
+                <p>{{ busy() ? 'Estamos validando tu recorrido…' : 'Tu recorrido está guardado. Puedes volver a enviarlo.' }}</p>
+              </div>
+            }
+          </div>
+          <div class="play-bottom">
+            <div class="mobile-controller">
+              <span class="controller-label">Control de movimiento</span>
+              <div class="touch-joystick" role="application" aria-label="Joystick táctil. Arrastra el control para mover la moto"
+                   (pointerdown)="joystickStart($event)" (pointermove)="joystickMove($event)"
+                   (pointerup)="joystickEnd($event)" (pointercancel)="joystickEnd($event)">
+                <span class="joystick-guide up" aria-hidden="true">↑</span>
+                <span class="joystick-guide right" aria-hidden="true">→</span>
+                <span class="joystick-guide down" aria-hidden="true">↓</span>
+                <span class="joystick-guide left" aria-hidden="true">←</span>
+                <span class="joystick-knob" [style.transform]="joystickTransform()" aria-hidden="true"></span>
+              </div>
+            </div>
+            <div class="play-actions"><span>🏠 Sigue la flecha hacia el cliente</span><button type="button" class="secondary" (click)="toggleSound()" [attr.aria-pressed]="sound()">{{ sound() ? '🎵 Música activa' : '🔇 Activar música' }}</button><button type="button" class="secondary" [disabled]="busy() || paused() || !!pendingInputs" (click)="pause()">Pausar</button><button type="button" class="text-button" (click)="leave()">Salir</button></div>
+          </div>
+          @if (pendingInputs) { <div class="result-pending" role="status"><p>{{ busy() ? 'Validando el recorrido en el servidor…' : 'La escena se conserva mientras vuelves a intentarlo.' }}</p><button type="button" class="secondary" [disabled]="busy()" (click)="retryResult()">Reintentar envío</button></div> }
+        </section>
+      }
+      @case ('result') {
+        @if (result(); as result) {
+          <section class="panel result" [class.failed]="result.status !== 'completed'">
+            <span class="result-icon">{{ result.status === 'completed' ? '🎉' : '🎂' }}</span>
+            <h2>{{ result.status === 'completed' ? (settings()?.messages?.success || '¡Entrega completada!') : (settings()?.messages?.failure || 'La entrega no se completó') }}</h2>
+            <div class="result-grid"><p><span>Tiempo</span><strong>{{ result.duration_seconds ?? 0 }} s</strong></p><p><span>Integridad</span><strong>{{ result.cake_health ?? 0 }} %</strong></p><p><span>Puntuación</span><strong>{{ result.final_score }}</strong></p><p><span>Estrellas</span><strong>{{ stars(result.stars) }}</strong></p></div>
+            <p class="earned">+{{ result.dulce_points_earned }} Dulce Puntos</p>
+            <div class="actions"><button type="button" class="button" (click)="view.set('intro')">Jugar otra vez</button><button type="button" class="secondary" (click)="openRewards()">Ver recompensas</button><a routerLink="/catalogo" class="text-button">Volver a la tienda</a></div>
+          </section>
+        }
+      }
+      @case ('rewards') {
+        <div class="section-heading"><h2>Recompensas</h2><button type="button" class="text-button" (click)="view.set('home')">← Inicio</button></div>
+        <p class="section-note">Tu saldo: <strong>{{ profile()?.balance ?? 0 }} Dulce Puntos</strong></p>
+        <div class="reward-grid">@for (reward of rewards(); track reward.id) {
+          <article class="panel reward-card"><span class="eyebrow">{{ reward.points_required }} Dulce Puntos</span><h3>{{ reward.name }}</h3><p>{{ reward.description || 'Descuento para tu próxima compra.' }}</p><small>Compra mínima S/ {{ reward.minimum_purchase }} · Válido {{ reward.expiration_days }} días</small><button type="button" class="button" [disabled]="busy() || (profile()?.balance ?? 0) < reward.points_required" (click)="redeem(reward)">Canjear puntos</button></article>
+        }</div>
+        <section class="panel coupons"><h3>Mis cupones</h3>@for (coupon of coupons(); track coupon.id) {
+          <div class="coupon"><div><strong>{{ coupon.reward.name }}</strong><code>{{ coupon.promotion.coupon_code }}</code><small>Vence {{ coupon.promotion.ends_at }}</small></div><button type="button" class="secondary" [disabled]="busy() || coupon.promotion.uses_count >= coupon.promotion.max_uses" (click)="applyCoupon(coupon.promotion.coupon_code)">{{ coupon.promotion.uses_count >= coupon.promotion.max_uses ? 'Usado' : 'Aplicar al carrito' }}</button></div>
+        } @empty { <p>Aún no has canjeado recompensas.</p> }</section>
+      }
+      @case ('history') {
+        <div class="section-heading"><h2>Mis partidas</h2><button type="button" class="text-button" (click)="view.set('home')">← Inicio</button></div>
+        <div class="panel history">@for (item of history(); track item.id) {
+          <div><div><strong>{{ item.level?.name || 'Nivel' }}</strong><span>{{ item.started_at.slice(0, 10) }}</span></div><span>{{ item.status === 'completed' ? 'Completada' : item.status === 'failed' ? 'Fallida' : 'Sin completar' }}</span><strong>{{ stars(item.stars) }} · {{ item.final_score }} puntos</strong></div>
+        } @empty { <p>Todavía no has jugado. ¡Elige un nivel!</p> }</div>
+      }
+    }
+  }
+</main>

@@ -1,0 +1,162 @@
+<header class="site-header" [class.guest-header]="!auth.authenticated()">
+  <div class="header-main">
+    <a routerLink="/" class="brand"><span>Dulce</span><strong>Encanto</strong></a>
+    <form class="global-search" (submit)="$event.preventDefault(); searchCatalog()">
+      <input
+        type="search"
+        placeholder="Busca tu antojo…"
+        aria-label="Buscar productos"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      /><button type="submit" aria-label="Buscar">⌕</button>
+    </form>
+    <div class="quick-links">
+      @if (auth.authenticated()) {
+        <a routerLink="/notificaciones" class="notification-link"
+          ><span>🔔</span>Avisos
+          @if (notifications.unread()) {
+            <b>{{ notifications.unread() }}</b>
+          }
+        </a>
+        @if (isStaff()) {
+          @if (auth.user()?.permissions?.includes('reportes.ver')) {
+            <a routerLink="/administracion/pedidos"><span>♧</span>Pedidos</a
+            ><a routerLink="/administracion"><span>▦</span>Panel</a>
+          } @else if (auth.user()?.permissions?.includes('pedidos.ver')) {
+            <a routerLink="/administracion/pedidos"><span>♧</span>Pedidos</a>
+          } @else if (auth.user()?.permissions?.includes('delivery.ver')) {
+            <a routerLink="/repartos"><span>🚚</span>Entregas</a>
+          }
+          <a routerLink="/cuenta"><span>♙</span>Cuenta</a>
+        } @else {
+          <a routerLink="/mis-pedidos"><span>♧</span>Pedidos</a
+          ><a routerLink="/favoritos"><span>♡</span>Favoritos</a
+          ><a routerLink="/cuenta"><span>♙</span>Cuenta</a
+          ><a routerLink="/carrito"><span>🛒</span>Carrito ({{ cart.count() }})</a>
+        }
+      } @else {
+        <a routerLink="/ingresar" class="account-link"
+          ><svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="3" />
+            <path d="M5 21v-3a7 7 0 0 1 14 0v3Z" /></svg
+          >Ingresar</a
+        >
+      }
+    </div>
+    <button
+      #menuButton
+      class="menu-button"
+      type="button"
+      (click)="menuOpen.set(!menuOpen())"
+      [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="primary-navigation"
+    >
+      ☰
+    </button>
+  </div>
+  <nav
+    id="primary-navigation"
+    #mobileMenu
+    [class.open]="menuOpen()"
+    aria-label="Navegación principal"
+  >
+    <a
+      routerLink="/"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      (click)="closeMenu()"
+      >Inicio</a
+    >
+    <a routerLink="/catalogo" routerLinkActive="active" (click)="closeMenu()">Catálogo</a>
+    <a routerLink="/zona-fria" routerLinkActive="active" (click)="closeMenu()">Zona fría</a>
+    <a routerLink="/entrega-dulce" routerLinkActive="active" (click)="closeMenu()">Juego</a>
+    <a routerLink="/disena-tu-torta" routerLinkActive="active" (click)="closeMenu()"
+      >Crea tu antojo</a
+    >
+    @if (auth.authenticated()) {
+      @if (!isStaff()) {
+        <a routerLink="/carrito" routerLinkActive="active" (click)="closeMenu()"
+          >Carrito ({{ cart.count() }})</a
+        >
+        <a routerLink="/favoritos" routerLinkActive="active" (click)="closeMenu()">Favoritos</a>
+        <a routerLink="/mis-pedidos" routerLinkActive="active" (click)="closeMenu()">Mis pedidos</a>
+      }
+      @if (
+        auth.user()?.permissions?.includes('delivery.ver') &&
+        !auth.user()?.permissions?.includes('reportes.ver')
+      ) {
+        <a routerLink="/repartos" routerLinkActive="active" (click)="closeMenu()">Mis entregas</a>
+      }
+      @if (auth.user()?.permissions?.includes('pedidos.ver')) {
+        <details class="admin-menu" #adminMenu>
+          <summary>Administración</summary>
+          <div class="admin-dropdown">
+            @if (auth.user()?.permissions?.includes('reportes.ver')) {
+              <a routerLink="/administracion" (click)="closeMenu(adminMenu)">Resumen del negocio</a>
+            }
+            @if (auth.user()?.permissions?.includes('pedidos.ver')) {
+              <a routerLink="/administracion/pedidos" (click)="closeMenu(adminMenu)">Pedidos</a>
+            }
+            @if (auth.user()?.permissions?.includes('catalogo.gestionar')) {
+              <a routerLink="/administracion/catalogo" (click)="closeMenu(adminMenu)">Catálogo</a>
+            }
+            @if (auth.user()?.permissions?.includes('pagos.ver')) {
+              <a routerLink="/administracion/pagos" (click)="closeMenu(adminMenu)">Pagos</a>
+            }
+            @if (auth.user()?.permissions?.includes('promociones.ver')) {
+              <a routerLink="/administracion/promociones" (click)="closeMenu(adminMenu)"
+                >Promociones</a
+              >
+            }
+            @if (auth.user()?.permissions?.includes('juego.ver')) {
+              <a routerLink="/administracion/juego" (click)="closeMenu(adminMenu)">Gestión del juego</a>
+            }
+            @if (auth.user()?.permissions?.includes('usuarios.ver')) {
+              <a routerLink="/administracion/clientes" (click)="closeMenu(adminMenu)">Clientes</a>
+            }
+            @if (auth.user()?.permissions?.includes('tortas.gestionar')) {
+              <a routerLink="/administracion/opciones-torta" (click)="closeMenu(adminMenu)"
+                >Opciones de torta</a
+              >
+            }
+            @if (auth.user()?.permissions?.includes('roles.gestionar')) {
+              <a routerLink="/administracion/equipo" (click)="closeMenu(adminMenu)"
+                >Equipo y accesos</a
+              >
+            }
+            @if (auth.user()?.permissions?.includes('configuracion.editar')) {
+              <a routerLink="/administracion/entregas" (click)="closeMenu(adminMenu)"
+                >Configurar entregas</a
+              >
+            }
+          </div>
+        </details>
+      }
+      <a routerLink="/cuenta" (click)="closeMenu()">Mi cuenta</a>
+    } @else {
+      <a class="mobile-account" routerLink="/ingresar" (click)="closeMenu()">Ingresar</a>
+      <a class="mobile-account" routerLink="/registro" (click)="closeMenu()">Crear cuenta</a>
+    }
+  </nav>
+</header>
+<router-outlet />
+@if (assistantVisible()) {
+  <app-shopping-assistant [class.cold-zone-page]="coldZonePage()" />
+}
+<div class="toast-stack" [class.with-assistant]="assistantVisible()" aria-live="polite" aria-label="Avisos">
+  @for (toast of toasts.messages(); track toast.id) {
+    <article
+      class="toast"
+      [class.success]="toast.type === 'success'"
+      [class.error]="toast.type === 'error'"
+      [class.info]="toast.type === 'info'"
+    >
+      <strong>{{ toast.title }}</strong>
+      @if (toast.message) {
+        <span>{{ toast.message }}</span>
+      }
+      <button type="button" (click)="toasts.dismiss(toast.id)" aria-label="Cerrar aviso">×</button>
+    </article>
+  }
+</div>

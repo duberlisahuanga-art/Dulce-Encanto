@@ -1,0 +1,60 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: dulce_encanto_backend
+    working_dir: /var/www/html
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+      - ./backend/.env.gemini
+    volumes:
+      - ./backend/app:/var/www/html/app
+      - ./backend/routes:/var/www/html/routes
+      - ./backend/config:/var/www/html/config
+      - ./backend/database:/var/www/html/database
+      - ./backend/tests:/var/www/html/tests
+      - ./backend/.env:/var/www/html/.env:ro
+      - ./backend/storage/app/public:/var/www/html/storage/app/public
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    container_name: dulce_encanto_mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: dulce_encanto
+      MYSQL_USER: dulce_encanto
+      MYSQL_PASSWORD: dulce_encanto_local
+      MYSQL_ROOT_PASSWORD: root_local
+      TZ: America/Lima
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dulce_encanto_frontend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

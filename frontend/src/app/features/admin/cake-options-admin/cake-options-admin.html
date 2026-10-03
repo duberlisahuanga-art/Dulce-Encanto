@@ -1,0 +1,99 @@
+<main>
+  <header>
+    <p>Administración</p>
+    <h1>Opciones de torta</h1>
+    <span>Configura tamaños, sabores, rellenos, coberturas, decoraciones y extras.</span>
+  </header>
+  @if (message()) {
+    <p class="notice success">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="notice error">{{ error() }}</p>
+  }
+  <section>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <label
+        >Tipo<select formControlName="type">
+          @for (type of types; track type.value) {
+            <option [value]="type.value">{{ type.label }}</option>
+          }
+        </select></label
+      >
+      <label>Nombre<input formControlName="name" /></label>
+      <label>Identificador<input formControlName="slug" placeholder="chocolate-blanco" /></label>
+      <label
+        >Precio base/adicional (S/)<input
+          type="number"
+          min="0"
+          step="0.01"
+          formControlName="price_adjustment"
+      /></label>
+      @if (form.controls.type.value === 'size') {
+        <label>Porciones<input type="number" min="1" formControlName="servings" /></label>
+      }
+      <label>Orden<input type="number" min="0" formControlName="sort_order" /></label>
+      <label class="wide"
+        >Colores disponibles, separados por coma<input
+          formControlName="colors"
+          placeholder="Blanco, Rosado, Celeste"
+      /></label>
+      <div class="wide"><label>Imagen de referencia<input type="file" accept="image/jpeg,image/png,image/webp" (change)="selectImage($event)" /></label><small>JPG, PNG o WebP · hasta 3 MB</small>
+      @if (preview(); as image) { <img class="option-preview" [src]="image" alt="Vista previa de la opción" /><button type="button" class="secondary" (click)="clearImage()">Quitar imagen</button> }</div>
+      <label class="wide">Descripción<textarea formControlName="description"></textarea></label>
+      <label class="check"
+        ><input type="checkbox" formControlName="is_active" /> Opción activa</label
+      >
+      <div class="actions wide">
+        <button type="submit" [disabled]="saving()">
+          {{ editingId() ? 'Actualizar' : 'Crear' }} opción
+        </button>
+        @if (editingId()) {
+          <button type="button" class="secondary" (click)="reset()">Cancelar</button>
+        }
+      </div>
+    </form>
+  </section>
+  <section class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Opción</th>
+          <th>Precio</th>
+          <th>Detalle</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (option of options(); track option.id) {
+          <tr>
+            <td>{{ typeLabel(option.type) }}</td>
+            <td>
+              @if (option.image_url) { <img class="option-thumbnail" [src]="option.image_url" [alt]="option.name" /> }
+              <strong>{{ option.name }}</strong
+              ><small>{{ option.slug }}</small>
+            </td>
+            <td>S/ {{ option.price_adjustment }}</td>
+            <td>
+              @if (option.servings) {
+                {{ option.servings }} porciones
+              } @else {
+                {{ option.available_colors.join(', ') || '—' }}
+              }
+            </td>
+            <td>
+              <span class="badge" [class.off]="!option.is_active">{{
+                option.is_active ? 'Activa' : 'Oculta'
+              }}</span>
+            </td>
+            <td class="row-actions">
+              <button class="link" type="button" (click)="edit(option)">Editar</button
+              ><button class="link danger" type="button" (click)="remove(option)">Eliminar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+</main>

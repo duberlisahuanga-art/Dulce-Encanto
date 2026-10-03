@@ -1,0 +1,228 @@
+<main>
+  <section class="cold-hero page-width" aria-labelledby="cold-title">
+    <div class="hero-copy">
+      <p class="eyebrow">Dulce Encanto · Zona fría</p>
+      <h1 id="cold-title">Un antojo para refrescar tu día</h1>
+      <p>Descubre helados y sabores para disfrutar bien fríos.</p>
+      <a class="button primary" href="#productos-frios"
+        >Explorar productos <span aria-hidden="true">↓</span></a
+      >
+    </div>
+    <img
+      src="/images/home/cold-desserts.webp"
+      alt="Postres fríos de frutas y galletas servidos en vasos"
+      width="1536"
+      height="1024"
+      fetchpriority="high"
+    />
+  </section>
+
+  <section class="catalog page-width" id="productos-frios" aria-labelledby="products-title">
+    <div class="catalog-heading">
+      <div>
+        <p class="eyebrow">Elige tu favorito</p>
+        <h2 id="products-title">Catálogo frío</h2>
+      </div>
+      <a class="back-link" routerLink="/catalogo"
+        >Ver todo el catálogo <span aria-hidden="true">→</span></a
+      >
+    </div>
+    <div class="catalog-tools">
+      <label class="search-field"
+        ><svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10" cy="10" r="6.5" />
+          <path d="m15 15 6 6" /></svg
+        ><span class="sr-only">Buscar en Zona fría</span
+        ><input
+          type="search"
+          placeholder="Busca un sabor o producto…"
+          [value]="search()"
+          (input)="setSearch($any($event.target).value)"
+      /></label>
+      <div class="tabs" role="group" aria-label="Filtrar productos">
+        <button
+          type="button"
+          [class.active]="selectedType() === 'todos'"
+          [attr.aria-pressed]="selectedType() === 'todos'"
+          (click)="setType('todos')"
+        >
+          Todos</button
+        ><button
+          type="button"
+          [class.active]="selectedType() === 'promocion'"
+          [attr.aria-pressed]="selectedType() === 'promocion'"
+          (click)="setType('promocion')"
+        >
+          Con promoción
+        </button>
+      </div>
+      <label class="sort-field"
+        ><span>Ordenar por</span
+        ><select [value]="sort()" (change)="setSort($any($event.target).value)">
+          <option value="recommended">Destacados</option>
+          <option value="price-asc">Menor precio</option>
+          <option value="price-desc">Mayor precio</option>
+        </select></label
+      >
+    </div>
+
+    @if (loadingProducts() || loadingPromotions()) {
+      <p class="status" role="status">Preparando sabores fríos…</p>
+    } @else {
+      @if (loadError()) {
+        <div class="error-state" role="alert">
+          <p>No pudimos cargar todos los productos. Inténtalo de nuevo.</p>
+          <button class="button secondary" type="button" (click)="loadProducts()">
+            Reintentar
+          </button>
+        </div>
+      }
+      <p class="result-count" role="status">
+        {{ filteredProducts().length }}
+        {{ filteredProducts().length === 1 ? 'producto' : 'productos' }}
+        @if (search() || selectedType() !== 'todos') {
+          <button type="button" (click)="resetFilters()">
+            Limpiar filtros <span aria-hidden="true">×</span>
+          </button>
+        }
+      </p>
+      <div class="product-grid">
+        @for (product of visibleProducts(); track product.id) {
+          <article
+            class="product-card"
+            [class.in-cart]="auth.authenticated() && cart.quantity(product.id) > 0"
+          >
+            <a
+              class="product-image"
+              [routerLink]="['/catalogo', product.slug]"
+              [attr.aria-label]="'Ver ' + product.name"
+            >
+              @if (product.image_url && !brokenImages().has(product.id)) {
+                <img
+                  [src]="product.image_url"
+                  [alt]="product.name"
+                  width="400"
+                  height="400"
+                  loading="lazy"
+                  (error)="imageFailed(product.id)"
+                />
+              } @else {
+                <span class="image-placeholder"
+                  >Dulce Encanto<small>Imagen no disponible</small></span
+                >
+              }
+              @if (product.promotion || product.coupon_promotion) {
+                <span class="discount">{{ discountLabel(product) }}</span>
+              }
+            </a>
+            <div class="product-copy">
+              <h3>
+                <a [routerLink]="['/catalogo', product.slug]">{{ product.name }}</a>
+              </h3>
+              <p>{{ description(product) }}</p>
+              <div class="price-row">
+                @if (displayPrice(product) < originalPrice(product)) {
+                  <del>{{ originalPrice(product) | currency: 'PEN' : 'S/ ' : '1.2-2' }}</del>
+                }
+                <strong>{{ displayPrice(product) | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+              </div>
+              <div class="purchase-controls">
+                @if (auth.authenticated()) {
+                  <app-product-quantity
+                    class="full-width"
+                    [productId]="product.id"
+                    [productName]="product.name"
+                    addLabel="Agregar al carrito"
+                    [showCartDetails]="true"
+                  />
+                } @else {
+                  <a class="button detail-button" routerLink="/ingresar">Ingresar para comprar</a>
+                }
+              </div>
+              <a
+                class="product-detail-link"
+                [routerLink]="['/catalogo', product.slug]"
+                [attr.aria-label]="'Ver detalle de ' + product.name"
+                >Ver detalle <span aria-hidden="true">→</span></a
+              >
+            </div>
+          </article>
+        } @empty {
+          @if (!loadError()) {
+            <div class="empty">
+              <h3>
+                {{
+                  search() || selectedType() !== 'todos'
+                    ? 'No encontramos ese antojo'
+                    : 'Pronto, nuevos sabores fríos'
+                }}
+              </h3>
+              <p>
+                {{
+                  search() || selectedType() !== 'todos'
+                    ? 'Prueba otro nombre o elimina los filtros para ver más opciones.'
+                    : 'Mientras tanto, descubre otros antojos de Dulce Encanto.'
+                }}
+              </p>
+              @if (search() || selectedType() !== 'todos') {
+                <button type="button" class="button primary" (click)="resetFilters()">
+                  Ver todos los productos
+                </button>
+              } @else {
+                <a routerLink="/catalogo" class="button primary">Explorar catálogo</a>
+              }
+            </div>
+          }
+        }
+      </div>
+      @if (visibleProducts().length) {
+        <div class="catalog-bottom">
+          <p>
+            Mostrando {{ visibleProducts().length }} de {{ filteredProducts().length }} productos
+          </p>
+          @if (visibleProducts().length < filteredProducts().length) {
+            <button type="button" class="button secondary" (click)="limit.set(limit() + 12)">
+              Cargar más productos <span aria-hidden="true">+</span>
+            </button>
+          }
+        </div>
+      }
+    }
+  </section>
+  @if (coldPromotions().length) {
+    <section class="promotions" aria-labelledby="promotions-title">
+      <div class="section-title">
+        <p>Beneficios de temporada</p>
+        <h2 id="promotions-title">Promos que refrescan</h2>
+      </div>
+      <div class="promotion-grid">
+        @for (promotion of coldPromotions(); track promotion.id) {
+          <article [style.--accent]="promotion.accent_color">
+            @if (promotion.banner_url) {
+              <img [src]="promotion.banner_url" [alt]="promotion.name" />
+            }
+            <div>
+              <span>{{ promotion.requires_coupon ? 'Con cupón' : 'Descuento automático' }}</span>
+              <h3>{{ promotion.name }}</h3>
+              <p>{{ promotion.description }}</p>
+              <strong
+                >{{
+                  promotion.discount_type === 'percentage'
+                    ? promotion.discount_value + '%'
+                    : 'S/ ' + promotion.discount_value
+                }}
+                de descuento</strong
+              >
+              @if (promotion.requires_coupon) {
+                <small
+                  >Código: <b>{{ promotion.coupon_code }}</b></small
+                >
+              }
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</main>
+<app-floating-cart-summary />

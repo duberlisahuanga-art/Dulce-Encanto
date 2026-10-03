@@ -1,0 +1,248 @@
+:host {
+  display: block;
+}
+main {
+  max-width: 78rem;
+  margin: auto;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 5rem;
+}
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  color: #8e7179;
+  font-size: 0.82rem;
+}
+.breadcrumb a {
+  color: #a34f68;
+}
+.product-layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1fr) minmax(18rem, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+.image-panel {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: #f6e4e7;
+  font-size: 6rem;
+}
+.image-panel img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-panel em {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  color: #317052;
+  background: white;
+  font-size: 0.72rem;
+  font-style: normal;
+}
+.information > small,
+.related small {
+  color: #a34f68;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.information h1 {
+  margin: 0.6rem 0;
+  color: #4a2932;
+  font:
+    500 clamp(2.5rem, 5vw, 4.3rem)/1 Georgia,
+    serif;
+}
+.price {
+  display: block;
+  margin: 1.2rem 0;
+  color: #8f3f59;
+  font-size: 1.7rem;
+}
+.favorite-action {
+  width: fit-content;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #e2bdc8;
+  border-radius: 999px;
+  color: #9a3656;
+  background: #fff4f7;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.favorite-action.active {
+  color: white;
+  background: #9a3656;
+}
+.description {
+  color: #76505b;
+  font-size: 1.03rem;
+  line-height: 1.7;
+}
+.availability {
+  display: grid;
+  gap: 0.25rem;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-block: 1px solid #ead6db;
+}
+.availability b {
+  color: #317052;
+}
+.availability span {
+  color: #8e7179;
+  font-size: 0.85rem;
+}
+.purchase {
+  display: flex;
+  gap: 0.8rem;
+}
+.quantity {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d9bfc6;
+  border-radius: 0.7rem;
+  overflow: hidden;
+}
+.quantity button {
+  width: 2.7rem;
+  height: 2.8rem;
+  border: 0;
+  background: #fff5f7;
+  color: #8f3f59;
+  font-size: 1.2rem;
+}
+.quantity strong {
+  min-width: 2rem;
+  text-align: center;
+}
+.add {
+  flex: 1;
+  padding: 0.85rem;
+  border: 0;
+  border-radius: 0.7rem;
+  color: white;
+  background: #8f3f59;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.add:disabled {
+  opacity: 0.6;
+}
+.notice {
+  padding: 0.8rem;
+  border-radius: 0.7rem;
+}
+.success {
+  color: #286b4d;
+  background: #eaf7ef;
+}
+.success a {
+  color: inherit;
+  font-weight: 800;
+}
+.error {
+  color: #9e2945;
+  background: #fdebef;
+}
+.benefits {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0;
+  color: #76505b;
+  font-size: 0.78rem;
+  list-style: none;
+}
+.benefits li::before {
+  content: '✓ ';
+  color: #a34f68;
+}
+.related {
+  margin-top: 5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #ead6db;
+}
+.related h2 {
+  margin: 0.4rem 0 1.5rem;
+  color: #4a2932;
+  font:
+    500 2.3rem Georgia,
+    serif;
+}
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.related-grid a {
+  color: #4a2932;
+  text-decoration: none;
+}
+.related-grid span {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #f6e4e7;
+  font-size: 3rem;
+}
+.related-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.related-grid h3 {
+  margin: 0.7rem 0 0.25rem;
+  font-family: Georgia, serif;
+}
+.related-grid strong {
+  color: #8f3f59;
+}
+.not-found,
+.status {
+  padding: 6rem 1rem;
+  text-align: center;
+}
+.not-found span {
+  font-size: 4rem;
+}
+.not-found h1 {
+  font-family: Georgia, serif;
+}
+.not-found a {
+  display: inline-block;
+  padding: 0.8rem 1rem;
+  border-radius: 0.7rem;
+  color: white;
+  background: #8f3f59;
+  text-decoration: none;
+}
+@media (max-width: 700px) {
+  .product-layout {
+    grid-template-columns: 1fr;
+  }
+  .information h1 {
+    font-size: 2.6rem;
+  }
+  .related-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

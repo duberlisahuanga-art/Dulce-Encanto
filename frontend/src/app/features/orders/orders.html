@@ -1,0 +1,148 @@
+<main>
+  <header>
+    <p>Mi cuenta</p>
+    <h1>Mis pedidos</h1>
+    <span>Consulta el avance y los detalles de tus compras.</span>
+  </header>
+  @if (loading()) {
+    <p class="status">Cargando pedidos…</p>
+  } @else if (error()) {
+    <p class="status error">{{ error() }}</p>
+  } @else {
+    @if (connectionWarning()) {
+      <p class="connection-warning" role="status">{{ connectionWarning() }}</p>
+    }
+    @if (lastUpdatedAt()) {
+      <p class="last-update">Seguimiento actualizado {{ lastUpdatedAt() | date: 'HH:mm:ss' }}</p>
+    }
+    <div class="orders">
+      @for (order of orders(); track order.id) {
+        <article>
+          <div class="order-head">
+            <div>
+              <small>{{ order.number }}</small>
+              <h2>{{ labels[order.status] }}</h2>
+              <p class="order-status-message">{{ statusMessage(order) }}</p>
+            </div>
+            <div>
+              <span>Entrega {{ order.delivery_date | date: 'dd/MM/yyyy' }}</span
+              ><strong>{{ +order.total | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+            </div>
+          </div>
+          @if (order.status !== 'cancelled') {
+            <div class="progress" [style.--steps]="steps(order).length" aria-label="Seguimiento del pedido">
+              @for (step of steps(order); track step.status; let index = $index) {
+                <span
+                  [class.completed]="stepState(order, index) === 'completed'"
+                  [class.current]="stepState(order, index) === 'current'"
+                  [attr.aria-current]="step.status === order.status ? 'step' : null"
+                ><b>{{ stepState(order, index) === 'completed' ? '✓' : index + 1 }}</b><small>{{ step.label }}</small></span>
+              }
+            </div>
+          }
+          <ol class="timeline" aria-label="Historial del pedido">
+            @for (event of timeline(order); track event.id) {
+              <li>
+                <span aria-hidden="true"></span>
+                <div><strong>{{ timelineLabel(order, event.status) }}</strong><time [attr.datetime]="event.createdAt">{{ event.createdAt | date: 'dd/MM/yyyy HH:mm' }}</time></div>
+              </li>
+            }
+          </ol>
+          <div class="items">
+            @for (item of order.items; track item.id) {
+              <p>
+                <span>{{ item.quantity }} × {{ item.name }}</span
+                ><strong>{{ +item.subtotal | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+              </p>
+            }
+          </div>
+          @if (order.delivery_method === 'delivery' && order.status === 'out_for_delivery') {
+            <section class="tracking">
+              <div class="tracking-head">
+                <div><small>Seguimiento del reparto</small><h3>Tu pedido está en camino</h3></div>
+                <span class="live-dot" [class.stale]="!isLocationFresh(order)">{{ isLocationFresh(order) ? 'Ubicación en vivo' : 'Señal demorada' }}</span>
+              </div>
+              @if (order.courier) {
+                <p>Repartidor: <strong>{{ order.courier.name }}</strong></p>
+              }
+              @if (order.delivery_issue) {
+                <div class="delivery-issue" role="alert">
+                  <strong>{{ issueLabel(order.delivery_issue) }}</strong>
+                  <span>{{ order.delivery_issue_note }}</span>
+                  @if (order.delivery_issue_at) { <small>Reportado {{ order.delivery_issue_at | date: 'HH:mm' }}</small> }
+                </div>
+              }
+              @if (hasTrackingLocation(order)) {
+                <div class="tracking-meta">
+                  <span>📍 A {{ distance(order) | number: '1.1-1' }} km en línea recta</span>
+                  <span>{{ isLocationFresh(order) ? 'Ubicación actualizada' : 'Última ubicación recibida' }} {{ locationAge(order) }}</span>
+                </div>
+                <button type="button" class="tracking-button" (click)="toggleTracking(order.id)">
+                  {{ trackingOrderId() === order.id ? 'Ocultar mapa' : (isLocationFresh(order) ? 'Seguir mi pedido' : 'Ver última ubicación') }}
+                </button>
+                @if (trackingOrderId() === order.id) {
+                  <app-delivery-tracking-map
+                    [courierLatitude]="order.courier!.latitude!"
+                    [courierLongitude]="order.courier!.longitude!"
+                    [destinationLatitude]="order.latitude!"
+                    [destinationLongitude]="order.longitude!"
+                  />
+                }
+              } @else {
+                <p class="waiting-location">El repartidor inició el recorrido. Esperando su ubicación GPS…</p>
+              }
+            </section>
+          }
+          @if (order.cancellation_request) {
+            <p class="cancellation-request">
+              Cancelación solicitada: {{ order.cancellation_request }}
+            </p>
+          }
+          <div class="order-actions">
+            @if (!order.cancellation_request && !['delivered','cancelled'].includes(order.status)) {
+              <button
+                type="button"
+                class="cancel-button"
+                (click)="requestCancellation(order)"
+              >
+                Solicitar cancelación
+              </button>
+            }
+            <button
+              type="button"
+              class="repeat-button"
+              (click)="repeatOrder(order)"
+              [disabled]="repeatingOrderId() === order.id"
+            >
+              {{ repeatingOrderId() === order.id ? 'Agregando…' : 'Repetir pedido' }}
+            </button>
+          </div>
+          <footer>
+            <span>{{
+              order.delivery_method === 'delivery' ? '🛵 Delivery' : '🏪 Recojo en tienda'
+            }}</span>
+            @if (order.payment) {
+              <small
+                >Pago: {{ order.payment.method | uppercase }} ·
+                {{
+                  order.payment.status === 'approved'
+                    ? 'Aprobado'
+                    : order.payment.status === 'rejected'
+                      ? 'Rechazado'
+                      : 'Pendiente'
+                }}</small
+              >
+            }
+            <small>Registrado {{ order.placed_at | date: 'dd/MM/yyyy HH:mm' }}</small>
+          </footer>
+        </article>
+      } @empty {
+        <section class="empty">
+          <span>📦</span>
+          <h2>Aún no tienes pedidos</h2>
+          <a routerLink="/catalogo">Explorar catálogo</a>
+        </section>
+      }
+    </div>
+  }
+</main>

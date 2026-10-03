@@ -1,0 +1,351 @@
+<main>
+  <header class="hero">
+    <p>Una creación hecha por ti</p>
+    <h1>Crea tu antojo</h1>
+    <span>Elige cada detalle visualmente y construye un producto único paso a paso.</span>
+  </header>
+  @if (loading()) {
+    <p class="status">Preparando el taller dulce…</p>
+  } @else if (!options()) {
+    <p class="status error">{{ error() }}</p>
+  } @else {
+    <nav class="steps" aria-label="Pasos de personalización">
+      @for (step of steps; track step; let index = $index) {
+        <button
+          type="button"
+          [class.active]="currentStep() === index"
+          [class.complete]="currentStep() > index"
+          (click)="goTo(index)"
+        >
+          <b>{{ currentStep() > index ? '✓' : index + 1 }}</b
+          ><span>{{ step }}</span>
+        </button>
+      }
+    </nav>
+    <div class="workspace">
+      <section class="customizer">
+        @if (currentStep() === 0) {
+          <div class="step-heading">
+            <small>Paso 1</small>
+            <h2>¿Qué quieres crear?</h2>
+            <p>
+              Comenzamos con tortas personalizadas. Los demás antojos se activarán progresivamente.
+            </p>
+          </div>
+          <div class="product-types">
+            @for (type of productTypes; track type.id) {
+              <button type="button" [class.selected]="type.enabled" [disabled]="!type.enabled">
+                <span class="product-image">
+                  <img [src]="type.image" [alt]="type.name" (error)="imageFailed($event)" />
+                  <i aria-hidden="true">{{ type.icon }}</i>
+                </span>
+                <strong>{{ type.name }}</strong
+                ><small>{{ type.enabled ? 'Diseñar ahora' : 'Próximamente' }}</small>
+              </button>
+            }
+          </div>
+        }
+        @if (currentStep() === 1) {
+          <div class="step-heading">
+            <small>Paso 2</small>
+            <h2>Forma y tamaño</h2>
+            <p>Define la estructura principal de tu torta.</p>
+          </div>
+          <h3>Forma</h3>
+          <div class="shape-grid">
+            @for (shape of shapes; track shape.id) {
+              <button
+                type="button"
+                [class.selected]="form.controls.shape.value === shape.id"
+                (click)="form.controls.shape.setValue(shape.id); invalidate()"
+              >
+                <span>{{ shape.icon }}</span
+                ><strong>{{ shape.id }}</strong>
+              </button>
+            }
+          </div>
+          <h3>Tamaño</h3>
+          <div class="option-grid">
+            @for (option of optionsFor('size'); track option.id) {
+              <button
+                type="button"
+                [class.selected]="selected('size_id', option.id)"
+                (click)="choose('size_id', option.id)"
+              >
+                @if (option.image_url) { <img class="uploaded-option" [src]="option.image_url" [alt]="option.name" /> } @else { <span class="visual size">🎂</span> }<strong>{{ option.name }}</strong
+                ><small>{{ option.servings }} personas</small
+                ><b>{{ +option.price_adjustment | currency: 'PEN' : 'symbol' : '1.2-2' }}</b>
+              </button>
+            }
+          </div>
+        }
+        @if (currentStep() === 2) {
+          <div class="step-heading">
+            <small>Paso 3</small>
+            <h2>Sabores e interior</h2>
+            <p>Combina el bizcocho y el relleno que más te gusten.</p>
+          </div>
+          <h3>Sabor del bizcocho</h3>
+          <div class="option-grid">
+            @for (option of optionsFor('flavor'); track option.id) {
+              <button
+                type="button"
+                [class.selected]="selected('flavor_id', option.id)"
+                (click)="choose('flavor_id', option.id)"
+              >
+                @if (option.image_url) { <img class="uploaded-option" [src]="option.image_url" [alt]="option.name" /> } @else { <span class="visual flavor">{{
+                  option.slug.includes('chocolate')
+                    ? '🍫'
+                    : option.slug.includes('zanahoria')
+                      ? '🥕'
+                      : '🍰'
+                }}</span
+                > }<strong>{{ option.name }}</strong
+                ><small>{{ option.description }}</small
+                ><b>+ S/ {{ option.price_adjustment }}</b>
+              </button>
+            }
+          </div>
+          <h3>Relleno</h3>
+          <div class="option-grid compact">
+            @for (option of optionsFor('filling'); track option.id) {
+              <button
+                type="button"
+                [class.selected]="selected('filling_id', option.id)"
+                (click)="choose('filling_id', option.id)"
+              >
+                @if (option.image_url) { <img class="uploaded-option" [src]="option.image_url" [alt]="option.name" /> } @else { <span class="visual">🥄</span> }<strong>{{ option.name }}</strong
+                ><b>+ S/ {{ option.price_adjustment }}</b>
+              </button>
+            }
+          </div>
+        }
+        @if (currentStep() === 3) {
+          <div class="step-heading">
+            <small>Paso 4</small>
+            <h2>Cobertura y paleta</h2>
+            <p>Da personalidad a tu creación con texturas y colores.</p>
+          </div>
+          <h3>Cobertura</h3>
+          <div class="option-grid compact">
+            @for (option of optionsFor('covering'); track option.id) {
+              <button
+                type="button"
+                [class.selected]="selected('covering_id', option.id)"
+                (click)="choose('covering_id', option.id)"
+              >
+                @if (option.image_url) { <img class="uploaded-option" [src]="option.image_url" [alt]="option.name" /> } @else { <span class="visual">🍥</span> }<strong>{{ option.name }}</strong
+                ><b>+ S/ {{ option.price_adjustment }}</b>
+              </button>
+            }
+          </div>
+          <div class="color-section">
+            <div>
+              <h3>Color principal</h3>
+              <div class="swatches">
+                @for (color of availableColors(); track color) {
+                  <button
+                    type="button"
+                    [class.selected]="form.controls.color.value === color"
+                    [style.background]="colorHex[color] ?? color"
+                    [attr.aria-label]="color"
+                    (click)="chooseColor('color', color)"
+                  ></button>
+                }
+              </div>
+            </div>
+            <div>
+              <h3>Color secundario</h3>
+              <div class="swatches">
+                @for (color of palette; track color) {
+                  <button
+                    type="button"
+                    [class.selected]="form.controls.secondary_color.value === color"
+                    [style.background]="colorHex[color]"
+                    [attr.aria-label]="color"
+                    (click)="chooseColor('secondary_color', color)"
+                  ></button>
+                }
+              </div>
+            </div>
+            <div>
+              <h3>Detalles</h3>
+              <div class="swatches">
+                @for (color of palette; track color) {
+                  <button
+                    type="button"
+                    [class.selected]="form.controls.detail_color.value === color"
+                    [style.background]="colorHex[color]"
+                    [attr.aria-label]="color"
+                    (click)="chooseColor('detail_color', color)"
+                  ></button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+        @if (currentStep() === 4) {
+          <div class="step-heading">
+            <small>Paso 5</small>
+            <h2>Decoración y mensaje</h2>
+            <p>Agrega los detalles que harán inolvidable tu diseño.</p>
+          </div>
+          <h3>Estilo principal</h3>
+          <div class="option-grid compact">
+            @for (option of optionsFor('decoration'); track option.id) {
+              <button
+                type="button"
+                [class.selected]="selected('decoration_id', option.id)"
+                (click)="choose('decoration_id', option.id)"
+              >
+                @if (option.image_url || decorationImage(option); as image) {
+                  <span class="option-image"><img [src]="image" [alt]="option.name" /></span>
+                } @else {
+                  @if (option.image_url) { <img class="uploaded-option" [src]="option.image_url" [alt]="option.name" /> } @else { <span class="visual">✨</span> }
+                }
+                <strong>{{ option.name }}</strong
+                ><b>+ S/ {{ option.price_adjustment }}</b>
+              </button>
+            }
+          </div>
+          <h3>Decoraciones adicionales</h3>
+          <div class="option-grid compact">
+            @for (option of optionsFor('extra'); track option.id) {
+              <button
+                type="button"
+                [class.selected]="hasExtra(option.id)"
+                (click)="toggleExtra(option.id)"
+              >
+                @if (option.image_url || extraImage(option); as image) {
+                  <span class="option-image"><img [src]="image" [alt]="option.name" /></span>
+                } @else {
+                  @if (option.image_url) { <img class="uploaded-option" [src]="option.image_url" [alt]="option.name" /> } @else { <span class="visual">{{
+                    option.slug.includes('flor') ? '🌸' : option.slug.includes('fruta') ? '🍓' : '🎀'
+                  }}</span> }
+                }
+                <strong>{{ option.name }}</strong
+                ><b>+ S/ {{ option.price_adjustment }}</b>
+              </button>
+            }
+          </div>
+          <div class="fields">
+            <label
+              >Temática<input
+                [formControl]="form.controls.theme"
+                (input)="invalidate()"
+                placeholder="Cumpleaños, matrimonio, graduación…" /></label
+            ><label
+              >Dedicatoria<input
+                [formControl]="form.controls.dedication"
+                (input)="invalidate()"
+                placeholder="Feliz cumpleaños Valeria" /></label
+            ><label
+              >Fecha de entrega<input
+                type="date"
+                [formControl]="form.controls.delivery_date"
+                [min]="minimumDate"
+                (change)="invalidate()"
+            /></label>
+          </div>
+        }
+        @if (currentStep() === 5) {
+          <div class="step-heading">
+            <small>Paso final</small>
+            <h2>Tu diseño está listo</h2>
+            <p>Revisa los detalles antes de agregar tu creación al carrito.</p>
+          </div>
+          <div class="summary">
+            <div><span>Producto</span><strong>Torta personalizada</strong></div>
+            <div>
+              <span>Forma</span><strong>{{ form.controls.shape.value }}</strong>
+            </div>
+            @for (selection of quote()?.selections ?? []; track selection.id) {
+              <div>
+                <span>{{ selection.type }}</span
+                ><strong>{{ selection.name }}</strong>
+              </div>
+            }
+            <div>
+              <span>Paleta</span
+              ><strong
+                >{{ form.controls.color.value }}, {{ form.controls.secondary_color.value }},
+                {{ form.controls.detail_color.value }}</strong
+              >
+            </div>
+            <div>
+              <span>Entrega</span
+              ><strong>{{ form.controls.delivery_date.value || 'Pendiente' }}</strong>
+            </div>
+          </div>
+          @if (error()) {
+            <p class="error">{{ error() }}</p>
+          }
+          @if (cartMessage()) {
+            <p class="success">{{ cartMessage() }}</p>
+          }
+          <div class="final-actions">
+            @if (auth.authenticated()) {
+              <button type="button" (click)="addToCart()">Agregar al carrito</button>
+            } @else {
+              <a routerLink="/ingresar">Inicia sesión para guardar tu diseño</a>
+            }
+          </div>
+        }
+        <footer class="step-actions">
+          <button type="button" class="back" [disabled]="currentStep() === 0" (click)="previous()">
+            ← Anterior
+          </button>
+          @if (currentStep() < steps.length - 1) {
+            <button type="button" (click)="next()">Continuar →</button>
+          }
+        </footer>
+      </section>
+
+      <aside>
+        <div
+          class="preview"
+          [style.--cake-primary]="colorHex[form.controls.color.value] ?? '#ed9fb4'"
+          [style.--cake-secondary]="colorHex[form.controls.secondary_color.value] ?? '#f4e2bd'"
+          [style.--cake-detail]="colorHex[form.controls.detail_color.value] ?? '#c7a45b'"
+          [style.--cake-flavor]="previewFlavorColor()"
+          [style.--cake-filling]="previewFillingColor()"
+        >
+          <div class="cake-stage">
+            <div class="cake-model" [class]="'cake-model shape-' + previewShape()">
+              <div class="cake-top"></div>
+              <div class="cake-side">
+                <span class="cake-band"></span><span class="cake-detail"></span>
+              </div>
+              <div class="decorations">
+                @for (icon of previewDecorations(); track $index) {
+                  <span>{{ icon }}</span>
+                }
+              </div>
+              @if (form.controls.dedication.value) {
+                <div class="cake-message">{{ form.controls.dedication.value }}</div>
+              }
+            </div>
+            <div class="cake-stand"></div>
+          </div>
+          <div class="cutaway">
+            <span class="sponge"></span><span class="filling"></span><span class="sponge"></span
+            ><small>Interior</small>
+          </div>
+        </div>
+        <small>Vista previa referencial</small>
+        <h2>{{ form.controls.shape.value }} · {{ form.controls.color.value }}</h2>
+        <p>Tu diseño se actualizará conforme elijas cada detalle.</p>
+        <div class="live-price">
+          <span>Precio estimado</span
+          ><strong>{{ estimatedTotal() | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+        </div>
+        <ul>
+          <li>{{ selectedName('size', 'size_id') }}</li>
+          <li>{{ selectedName('flavor', 'flavor_id') }}</li>
+          <li>{{ selectedName('filling', 'filling_id') }}</li>
+          <li>{{ selectedExtraIds().length }} decoraciones extra</li>
+        </ul>
+      </aside>
+    </div>
+  }
+</main>

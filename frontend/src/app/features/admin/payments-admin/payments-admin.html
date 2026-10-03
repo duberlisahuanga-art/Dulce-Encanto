@@ -1,0 +1,195 @@
+<main>
+  <header>
+    <p>Administración</p>
+    <div>
+      <h1>Pagos</h1>
+      <span>Revisa y confirma los pagos de cada pedido.</span>
+    </div>
+  </header>
+  @if (loading()) {
+    <p class="feedback">Cargando pagos...</p>
+  } @else {
+    <section class="summary" aria-label="Resumen de pagos">
+      <button type="button" [class.active]="filter() === 'all'" (click)="setFilter('all')">
+        <small>Total</small><strong>{{ summary().total }}</strong>
+      </button>
+      <button
+        type="button"
+        class="pending"
+        [class.active]="filter() === 'pending'"
+        (click)="setFilter('pending')"
+      >
+        <small>Pendientes</small><strong>{{ summary().pending }}</strong>
+      </button>
+      <button
+        type="button"
+        class="approved"
+        [class.active]="filter() === 'approved'"
+        (click)="setFilter('approved')"
+      >
+        <small>Aprobados</small><strong>{{ summary().approved }}</strong>
+      </button>
+      <button
+        type="button"
+        class="rejected"
+        [class.active]="filter() === 'rejected'"
+        (click)="setFilter('rejected')"
+      >
+        <small>Rechazados</small><strong>{{ summary().rejected }}</strong>
+      </button>
+    </section>
+    @if (message()) {
+      <p class="feedback success" role="status">{{ message() }}</p>
+    }
+    @if (error()) {
+      <p class="feedback error" role="alert">{{ error() }}</p>
+    }
+    <section class="payments" aria-label="Lista de pagos">
+      @for (order of filteredOrders(); track order.id) {
+        @if (order.payment) {
+          <article class="payment-card">
+            <div class="order">
+              <small>Pedido {{ order.number }}</small>
+              <h2>{{ order.customer?.name }}</h2>
+              <span>{{ order.placed_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="detail">
+              <small>Método</small><strong>{{ methodLabel(order.payment.method) }}</strong>
+            </div>
+            <div class="detail amount">
+              <small>Monto</small
+              ><strong>{{ +order.payment.amount | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+            </div>
+            <div class="payment-status">
+              <span
+                class="badge"
+                [class.approved]="order.payment.status === 'approved'"
+                [class.rejected]="order.payment.status === 'rejected'"
+                >{{ statusLabel(order.payment.status) }}</span
+              >
+              @if (order.payment.reference) {
+                <small>Ref. {{ order.payment.reference }}</small>
+              } @else if (order.payment.reviewed_at) {
+                <small>Revisado {{ order.payment.reviewed_at | date: 'dd/MM HH:mm' }}</small>
+              }
+            </div>
+            @if (
+              order.payment.status === 'pending' &&
+              auth.user()?.permissions?.includes('pagos.aprobar')
+            ) {
+              <div class="actions">
+                <button
+                  type="button"
+                  [disabled]="savingPaymentId() === order.payment.id"
+                  (click)="review(order, 'approved')"
+                >
+                  {{ savingPaymentId() === order.payment.id ? 'Guardando...' : 'Aprobar' }}
+                </button>
+                <button
+                  type="button"
+                  class="reject"
+                  [disabled]="savingPaymentId() === order.payment.id"
+                  (click)="review(order, 'rejected')"
+                >
+                  Rechazar
+                </button>
+              </div>
+            }
+          </article>
+        }
+      } @empty {
+        <p class="empty">No hay pagos para este filtro.</p>
+      }
+    </section>
+  }
+</main>
+
+<dialog
+  #reviewDialog
+  class="review-dialog"
+  aria-labelledby="review-title"
+  aria-describedby="review-description"
+  (cancel)="cancelReview($event)"
+>
+  @if (pendingReview(); as review) {
+    <div class="review-content" [attr.aria-busy]="savingPaymentId() !== null">
+      <div class="review-icon" [class.is-reject]="review.status === 'rejected'" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z" />
+          @if (review.status === 'approved') {
+            <path d="m8 12 3 3 5-6" />
+          } @else {
+            <path d="m9 9 6 6m0-6-6 6" />
+          }
+        </svg>
+      </div>
+      <p class="review-eyebrow">Revisión de pago</p>
+      <h2 id="review-title">
+        {{ review.status === 'approved' ? '¿Aprobar este pago?' : '¿Rechazar este pago?' }}
+      </h2>
+      <p id="review-description">
+        {{
+          review.status === 'approved'
+            ? 'Confirma que recibiste el monto indicado antes de aprobar el pago.'
+            : 'Confirma que deseas marcar este pago como rechazado.'
+        }}
+      </p>
+      <dl class="review-summary">
+        <div>
+          <dt>Pedido</dt>
+          <dd>{{ review.order.number }}</dd>
+        </div>
+        <div>
+          <dt>Cliente</dt>
+          <dd>{{ review.order.customer?.name || 'Sin nombre registrado' }}</dd>
+        </div>
+        <div>
+          <dt>Método de pago</dt>
+          <dd>{{ methodLabel(review.order.payment!.method) }}</dd>
+        </div>
+        @if (review.order.payment?.reference) {
+          <div>
+            <dt>Referencia</dt>
+            <dd>{{ review.order.payment!.reference }}</dd>
+          </div>
+        }
+        <div class="review-total">
+          <dt>Monto a {{ review.status === 'approved' ? 'aprobar' : 'rechazar' }}</dt>
+          <dd>{{ +review.order.payment!.amount | currency: 'PEN' : 'S/ ' : '1.2-2' }}</dd>
+        </div>
+      </dl>
+      @if (reviewError()) {
+        <p class="review-error" role="alert">{{ reviewError() }}</p>
+      }
+      <div class="review-actions">
+        <button
+          type="button"
+          class="cancel-review"
+          autofocus
+          [disabled]="savingPaymentId() !== null"
+          (click)="closeReview()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="confirm-review"
+          [class.is-reject]="review.status === 'rejected'"
+          [disabled]="savingPaymentId() !== null"
+          (click)="confirmReview()"
+        >
+          {{
+            savingPaymentId() !== null
+              ? 'Guardando…'
+              : review.status === 'approved'
+                ? 'Sí, aprobar pago'
+                : 'Sí, rechazar pago'
+          }}
+        </button>
+      </div>
+      <span class="review-status" role="status">{{
+        savingPaymentId() !== null ? 'Actualizando el pago. Espera un momento.' : ''
+      }}</span>
+    </div>
+  }
+</dialog>

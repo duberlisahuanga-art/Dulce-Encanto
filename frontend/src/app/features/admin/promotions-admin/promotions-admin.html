@@ -1,0 +1,48 @@
+<main>
+  <header class="page-heading">
+    <div><p class="eyebrow">Administración · Marketing</p><h1>Promociones</h1><span>Diseña campañas, elige los productos incluidos y prévisualiza cómo las verán tus clientes.</span></div>
+    <div class="summary"><span>Activas</span><strong>{{ activeCount() }}</strong><small>de {{ promotions().length }} campañas</small></div>
+  </header>
+
+  <section class="editor-layout">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="form-heading"><span class="form-icon" aria-hidden="true">%</span><div><p class="eyebrow">Campaña</p><h2>{{ editingId() ? 'Editar promoción' : 'Nueva promoción' }}</h2></div></div>
+      <label>Nombre de la promoción<input formControlName="name" placeholder="Ej. Semana dulce" /></label>
+      <label>Descripción<textarea formControlName="description" placeholder="Describe el beneficio de esta campaña"></textarea></label>
+      <div class="row"><label>Tipo de descuento<select formControlName="discount_type"><option value="percentage">Porcentaje</option><option value="fixed">Monto fijo</option></select></label><label>Valor<input type="number" min="0.01" step="0.01" formControlName="discount_value" /></label></div>
+      <div class="row"><label>Fecha de inicio<input type="date" formControlName="starts_at" /></label><label>Fecha de finalización<input type="date" formControlName="ends_at" /></label></div>
+      <label class="check"><input type="checkbox" formControlName="is_active" /><span><strong>Visible en el catálogo</strong><small>Los clientes podrán encontrar esta campaña.</small></span></label>
+
+      <div class="design-fields"><p class="section-label">Diseño de la campaña</p><label>Banner o imagen principal<input type="file" accept="image/png,image/jpeg,image/webp" (change)="selectBanner($event)" /></label><div class="row"><label>Color destacado<input type="color" formControlName="accent_color" /></label><label>Texto del botón<input formControlName="cta_label" /></label></div></div>
+      <div class="design-fields"><p class="section-label">Cupón y condiciones</p><label class="check"><input type="checkbox" formControlName="requires_coupon" /><span><strong>Requiere código de cupón</strong><small>Si no se marca, el descuento se aplica automáticamente.</small></span></label>@if(form.controls.requires_coupon.value){<div class="row"><label>Código<input formControlName="coupon_code" placeholder="Código del cupón" /></label><label>Compra mínima (S/)<input type="number" min="0" formControlName="minimum_purchase" /></label></div>}</div>
+      @if (error()) { <p class="error">{{ error() }}</p> }
+      <div class="form-actions"><button type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : editingId() ? 'Guardar cambios' : 'Crear promoción' }}</button>@if (editingId()) { <button type="button" class="secondary" (click)="cancel()">Cancelar</button> }</div>
+    </form>
+
+    <aside class="preview" [style.--accent]="form.controls.accent_color.value">
+      <p class="eyebrow">Vista previa</p>
+      <div class="preview-card" [style.background-color]="form.controls.accent_color.value">
+        @if (bannerPreview()) { <img [src]="bannerPreview()" alt="Vista previa del banner" /> } @else { <span class="banner-placeholder" aria-hidden="true">✦</span> }
+        <div><small>PROMOCIÓN ESPECIAL</small><h2>{{ form.controls.name.value || 'Tu próxima promoción' }}</h2><p>{{ form.controls.description.value || 'El mensaje de tu campaña aparecerá aquí para tus clientes.' }}</p><strong>{{ form.controls.discount_type.value === 'percentage' ? form.controls.discount_value.value + '% de descuento' : 'S/ ' + form.controls.discount_value.value + ' de descuento' }}</strong><button type="button">{{ form.controls.cta_label.value || 'Ver promoción' }}</button></div>
+      </div>
+      <p class="preview-note">Así se mostrará la campaña en las secciones destacadas.</p>
+    </aside>
+  </section>
+
+  <section class="product-picker" [formGroup]="form">
+    <div class="picker-heading"><div><p class="eyebrow">Productos incluidos</p><h2>¿Dónde se aplica el descuento?</h2><span>Selecciona productos específicos o aplica la campaña a todo el catálogo.</span></div><strong>{{ form.controls.applies_to_all.value ? 'Todo el catálogo' : selectedProductIds().length + ' seleccionados' }}</strong></div>
+    <label class="apply-all"><input type="checkbox" formControlName="applies_to_all" /><span><b>Aplicar a todo el catálogo</b><small>No será necesario seleccionar productos individuales.</small></span></label>
+    @if (!form.controls.applies_to_all.value) {
+      <div class="product-grid">
+        @for (product of products(); track product.id) {
+          <label class="product-option" [class.selected]="isSelected(product.id)"><input type="checkbox" [checked]="isSelected(product.id)" (change)="toggleProduct(product.id, $any($event.target).checked)" /><img [src]="product.image_url || ''" [alt]="product.name" /><span><b>{{ product.name }}</b><small>S/ {{ product.price }}</small></span></label>
+        } @empty { <p class="empty-products">No hay productos disponibles para asociar.</p> }
+      </div>
+    }
+  </section>
+
+  <section class="campaigns">
+    <div class="campaigns-heading"><div><p class="eyebrow">Tus campañas</p><h2>Promociones registradas</h2></div><span>{{ promotions().length }} total</span></div>
+    <div class="list">@for (promotion of promotions(); track promotion.id) { <article><div class="campaign-thumb" [style.background]="promotion.accent_color">@if (promotion.banner_url) { <img [src]="promotion.banner_url" [alt]="promotion.name" /> } @else { {{ promotion.discount_type === 'percentage' ? promotion.discount_value + '%' : 'S/ ' + promotion.discount_value }} }</div><div class="campaign-copy"><small>{{ promotion.starts_at }} — {{ promotion.ends_at }}</small><h3>{{ promotion.name }}</h3><p>{{ promotion.description || 'Sin descripción adicional.' }}</p><em>{{ promotion.applies_to_all ? 'Todo el catálogo' : promotion.products.length + ' productos incluidos' }}</em></div><span class="status" [class.off]="!promotion.is_active">{{ promotion.is_active ? 'Activa' : 'Oculta' }}</span><div class="actions"><button type="button" class="edit" (click)="edit(promotion)">Editar</button><button type="button" class="danger" (click)="remove(promotion)">Eliminar</button></div></article> } @empty { <div class="empty"><span>✦</span><h3>Aún no hay promociones</h3><p>Crea la primera campaña con productos y diseño.</p></div> }</div>
+  </section>
+</main>

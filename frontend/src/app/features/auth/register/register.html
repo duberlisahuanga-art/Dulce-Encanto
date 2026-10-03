@@ -1,0 +1,51 @@
+<main class="auth-page">
+  <div class="auth-shell">
+  <aside class="welcome-panel" aria-hidden="true"><span class="mini-cake">🧁</span><p>Tu rincón más dulce</p><h2>Crea, celebra<br />y comparte.</h2><div class="benefits"><span>✓ Diseña tu propia torta</span><span>✓ Sigue cada pedido</span><span>✓ Descubre nuevos sabores</span></div></aside>
+  <section class="card">
+    <p class="eyebrow">Únete a Dulce Encanto</p>
+    <h1>Crear cuenta</h1>
+    <p class="intro">Tu cuenta se registrará automáticamente como cliente.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        Nombre completo
+        <span class="input-wrap"><span aria-hidden="true">♙</span><input type="text" formControlName="name" autocomplete="name" placeholder="Tu nombre completo" /></span>
+        @if (form.controls.name.touched && form.controls.name.invalid) { <small>Ingresa tu nombre completo.</small> }
+      </label>
+      <label>
+        Correo electrónico
+        <span class="input-wrap"><span aria-hidden="true">✉</span><input type="email" formControlName="email" autocomplete="email" placeholder="tu@correo.com" /></span>
+        @if (form.controls.email.touched && form.controls.email.invalid) { <small>Ingresa un correo válido.</small> }
+      </label>
+      <label>
+        Contraseña
+        <span class="input-wrap"><span aria-hidden="true">◈</span><input [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" /><button class="reveal" type="button" (click)="showPassword.set(!showPassword())">{{showPassword()?'Ocultar':'Ver'}}</button></span>
+        <ul class="password-checks" aria-label="Requisitos de contraseña">
+          <li [class.ok]="passwordHas('length')">✓ 8 caracteres</li>
+          <li [class.ok]="passwordHas('letters')">✓ 1 letra</li>
+          <li [class.ok]="passwordHas('numbers')">✓ 1 número</li>
+        </ul>
+        @if (passwordMessage()) { <small>{{ passwordMessage() }}</small> }
+      </label>
+      <label>
+        Confirmar contraseña
+        <input
+          [type]="showPassword() ? 'text' : 'password'"
+          formControlName="password_confirmation"
+          autocomplete="new-password"
+          placeholder="Repite tu contraseña" />
+      </label>
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
+      </button>
+    </form>
+
+    <p class="alternate">¿Ya tienes cuenta? <a routerLink="/ingresar">Ingresa</a></p>
+  </section>
+  </div>
+</main>

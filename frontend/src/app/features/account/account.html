@@ -1,0 +1,58 @@
+<main class="account-page">
+  <header class="page-heading"><p class="eyebrow">Área personal</p><h1>Mi cuenta</h1><span>Gestiona la información y seguridad de tu cuenta desde un solo lugar.</span></header>
+
+  <section class="account-layout">
+    <aside class="account-menu">
+      <div class="user-summary"><span class="avatar">{{ auth.user()?.name?.slice(0, 1) || 'U' }}</span><div><strong>{{ auth.user()?.name }}</strong><small>{{ auth.user()?.email }}</small></div></div>
+      <nav aria-label="Secciones de mi cuenta">
+        <a routerLink="/cuenta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><span>⌂</span> Resumen</a>
+        <a routerLink="/cuenta/perfil" routerLinkActive="active"><span>◉</span> Mi perfil</a>
+        <a routerLink="/cuenta/seguridad" routerLinkActive="active"><span>⌑</span> Seguridad</a>
+        <a routerLink="/cuenta/direcciones" routerLinkActive="active"><span>⌖</span> Direcciones</a>
+        <a routerLink="/favoritos"><span>♡</span> Favoritos</a>
+        <a routerLink="/mis-pedidos"><span>◷</span> Mis pedidos</a>
+        <a routerLink="/notificaciones"><span>✦</span> Notificaciones</a>
+      </nav>
+      <button type="button" class="logout" (click)="logout()" [disabled]="loggingOut()"><span>↗</span> {{ loggingOut() ? 'Cerrando…' : 'Cerrar sesión' }}</button>
+    </aside>
+
+    <section class="content-panel">
+      @if (section() === 'summary') {
+        <div class="content-heading"><p class="eyebrow">Resumen</p><h2>Hola, {{ auth.user()?.name?.split(' ')?.[0] }}</h2><span>Estos son los accesos principales de tu cuenta.</span></div>
+        
+        <div class="quick-grid"><a routerLink="/mis-pedidos"><span>◷</span><strong>Mis pedidos</strong><small>Revisa el estado e historial de tus compras.</small><b>→</b></a><a routerLink="/favoritos"><span>♡</span><strong>Favoritos</strong><small>Guarda productos para volver a pedirlos rápido.</small><b>→</b></a><a routerLink="/notificaciones"><span>✦</span><strong>Notificaciones</strong><small>Consulta los avisos recientes del sistema.</small><b>→</b></a></div>
+      }
+
+      @if (section() === 'profile') {
+        <div class="content-heading"><p class="eyebrow">Perfil</p><h2>Datos de tu cuenta</h2><span>Actualiza tus datos para agilizar compras, delivery y comunicaciones.</span></div>
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()"><label>Nombre completo<input formControlName="name" autocomplete="name" /></label><label>Correo electrónico<input type="email" formControlName="email" autocomplete="email" /></label><label>Teléfono<input formControlName="phone" autocomplete="tel" placeholder="999 999 999" /></label><label>Fecha de cumpleaños<input type="date" formControlName="birthday" /></label>@if (profileError()) { <p class="form-error">{{ profileError() }}</p> } @if (profileMessage()) { <p class="form-success">{{ profileMessage() }}</p> }<button class="save-password" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar perfil' }}</button></form>
+        <div class="profile-details compact"><div><small>Rol asignado</small><span class="roles">@for (role of auth.user()?.roles ?? []; track role) { <b>{{ role }}</b> }</span></div></div>
+      }
+
+      @if (section() === 'security') {
+        <div class="content-heading"><p class="eyebrow">Seguridad</p><h2>Actualiza tu contraseña</h2><span>Usa una contraseña única de al menos 8 caracteres para proteger tu cuenta.</span></div>
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()"><label>Contraseña actual<input type="password" formControlName="current_password" autocomplete="current-password" /></label><label>Nueva contraseña<input type="password" formControlName="password" autocomplete="new-password" /></label><label>Confirmar nueva contraseña<input type="password" formControlName="password_confirmation" autocomplete="new-password" /></label>@if (passwordError()) { <p class="form-error">{{ passwordError() }}</p> } @if (passwordMessage()) { <p class="form-success">{{ passwordMessage() }}</p> }<button class="save-password" type="submit" [disabled]="saving()">{{ saving() ? 'Actualizando…' : 'Guardar nueva contraseña' }}</button></form>
+      }
+      @if (section() === 'addresses') {
+        <div class="content-heading"><p class="eyebrow">Direcciones</p><h2>Mis direcciones guardadas</h2><span>Estas direcciones estarán disponibles al finalizar una compra.</span></div>
+        <button class="save-password" type="button" (click)="editAddress()">Agregar dirección</button>
+        @if (editingAddress() || !addresses().length) {
+          <form [formGroup]="addressForm" (ngSubmit)="saveAddress()">
+            <label>Nombre de la dirección<input formControlName="label" maxlength="80" placeholder="Casa, trabajo…" /></label>
+            @if (addressForm.controls.label.touched && addressForm.controls.label.invalid) { <small class="field-error" role="alert">Escribe un nombre para identificar la dirección.</small> }
+            <app-location-picker [point]="addressPoint()" [center]="storePoint()" [maximumDistanceKm]="maximumDeliveryDistance()" (selected)="selectAddressPoint($event)" (addressFound)="addressForm.controls.address.setValue($event)" />
+            <p class="coverage-help">Solo se pueden guardar direcciones ubicadas hasta {{ maximumDeliveryDistance() }} km de la tienda.</p>
+            @if (addressCoverage()) { <p class="coverage-result" [class.outside]="addressError()">{{ addressCoverage() }}</p> }
+            <label>Dirección<input formControlName="address" maxlength="255" autocomplete="street-address" /></label>
+            @if (addressForm.controls.address.touched && addressForm.controls.address.invalid) { <small class="field-error" role="alert">Escribe la dirección completa.</small> }
+            <label>Referencia<input formControlName="reference" maxlength="255" /></label>
+            <label class="check"><input type="checkbox" formControlName="is_default" /> Usar como predeterminada</label>
+            @if (addressError()) { <p class="form-error" role="alert">{{ addressError() }}</p> }
+            <button class="save-password" type="submit">Guardar dirección</button>
+          </form>
+        }
+        <div class="profile-details">@for (address of addresses(); track address.id) { <div><small>{{ address.is_default ? 'Dirección predeterminada · ' : '' }}{{ address.label }}</small><strong>{{ address.address }}</strong><span>{{ address.reference }}</span><p><button type="button" class="edit" (click)="editAddress(address)">Editar</button><button type="button" class="danger" (click)="removeAddress(address)">Eliminar</button></p></div> } @empty { <div><strong>Aún no tienes direcciones guardadas.</strong></div> }</div>
+      }
+    </section>
+  </section>
+</main>

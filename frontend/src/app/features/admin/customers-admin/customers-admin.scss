@@ -1,0 +1,136 @@
+main {
+  max-width: 78rem;
+  margin: auto;
+  padding: 3rem clamp(1rem, 4vw, 3rem);
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 2rem;
+}
+header p,
+small {
+  color: #a34f68;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+h1,
+h2,
+h3 {
+  font-family: Georgia, serif;
+  color: #4a2932;
+}
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  margin: 0.3rem 0;
+}
+form {
+  display: flex;
+}
+input {
+  padding: 0.75rem;
+  border: 1px solid #d9bfc6;
+  border-radius: 0.6rem 0 0 0.6rem;
+}
+button {
+  border: 0;
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  background: #8f3f59;
+  color: #fff;
+  cursor: pointer;
+}
+form button {
+  border-radius: 0 0.6rem 0.6rem 0;
+}
+.cards {
+  display: grid;
+  gap: 0.8rem;
+}
+.cards article {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 1.2rem;
+  background: #fff;
+  border: 1px solid #efd9df;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: #f4dce3;
+  color: #713247;
+  font: 700 1.3rem Georgia;
+}
+.cards h2,
+.cards p {
+  margin: 0.2rem;
+}
+.metric {
+  display: grid;
+  text-align: center;
+}
+.metric strong {
+  font-size: 1.2rem;
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: #2d1720aa;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 20;
+}
+.detail {
+  position: relative;
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: min(42rem, 100%);
+  max-height: 80vh;
+  overflow: auto;
+}
+.detail article {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  border-top: 1px solid #eee;
+  padding: 0.8rem 0;
+}
+.detail article div {
+  display: grid;
+}
+.close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  border-radius: 50%;
+}
+.status {
+  text-align: center;
+}
+.error {
+  color: #a1203f;
+}
+@media (max-width: 800px) {
+  header {
+    display: block;
+  }
+  .cards article {
+    grid-template-columns: auto 1fr;
+  }
+  .cards article > button {
+    grid-column: 1/-1;
+  }
+  .metric {
+    display: none;
+  }
+}

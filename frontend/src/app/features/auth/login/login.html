@@ -1,0 +1,42 @@
+<main class="auth-page">
+  <div class="auth-shell">
+  <aside class="welcome-panel" aria-hidden="true">
+    <span class="mini-cake">🎂</span><p>Un momento dulce comienza aquí</p>
+    <h2>Todo lo que amas,<br />en un solo lugar.</h2>
+    <div class="benefits"><span>✓ Sigue tus pedidos</span><span>✓ Guarda tus creaciones</span><span>✓ Compra de forma segura</span></div>
+  </aside>
+  <section class="card">
+    <p class="eyebrow">Bienvenido nuevamente</p>
+    <h1>Ingresar</h1>
+    <p class="intro">Consulta tus pedidos y diseños guardados.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        Correo electrónico
+        <span class="input-wrap"><span aria-hidden="true">✉</span><input type="email" formControlName="email" autocomplete="email" placeholder="tu@correo.com" /></span>
+        @if (form.controls.email.touched && form.controls.email.invalid) { <small>Ingresa un correo electrónico válido.</small> }
+      </label>
+      <label>
+        Contraseña
+        <span class="input-wrap"><span aria-hidden="true">◈</span><input [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" placeholder="Tu contraseña" /><button class="reveal" type="button" (click)="showPassword.set(!showPassword())" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">{{ showPassword() ? 'Ocultar' : 'Ver' }}</button></span>
+        @if (form.controls.password.touched && form.controls.password.invalid) { <small>La contraseña es obligatoria.</small> }
+      </label>
+      <label class="check">
+        <input type="checkbox" formControlName="remember" />
+        <span>Mantener mi sesión iniciada</span>
+      </label>
+      <p class="remember-note"><a routerLink="/recuperar-contrasena">Olvidé mi contraseña</a></p>
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+
+      <button type="submit" [disabled]="loading()">
+        {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <p class="alternate">¿Aún no tienes cuenta? <a routerLink="/registro">Regístrate</a></p>
+  </section>
+  </div>
+</main>

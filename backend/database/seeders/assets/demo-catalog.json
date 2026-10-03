@@ -1,0 +1,224 @@
+{
+  "purpose": "Catálogo de demostración local. Precios ficticios en PEN; imágenes referenciales.",
+  "source_repository": "https://github.com/ParasGarg/Online-Grocery-Store",
+  "source_revision": "66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1",
+  "source_license": "MIT for repository code; image authorship is not independently verified. Imported images are demo references, not evidence of products sold by Dulce Encanto.",
+  "products": [
+    {
+      "category": "tortas",
+      "name": "Torta mousse de chocolate",
+      "slug": "demo-torta-mousse-chocolate",
+      "price": 88,
+      "description": "Torta de 18 cm con bizcocho de cacao, mousse y cobertura de chocolate. 6–8 porciones.",
+      "image": "imported-chocolate-mousse-torte-cake.png",
+      "source_id": "d0975326-7b43-479e-a109-cb818abec62d",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/chocolate-mousse-torte-cake.png"
+    },
+    {
+      "category": "tortas",
+      "name": "Torta brownie triple chocolate",
+      "slug": "demo-torta-brownie-triple",
+      "price": 92,
+      "description": "Base de brownie con tres coberturas de chocolate. Presentación de 18 cm para compartir.",
+      "image": "imported-triple-chocolate-enrobed-brownie-cake.png",
+      "source_id": "ebed34eb-7533-49f5-91cb-37c12f20d4b1",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/triple-chocolate-enrobed-brownie-cake.png"
+    },
+    {
+      "category": "tortas",
+      "name": "Torta Red Velvet con chocolate blanco",
+      "slug": "demo-red-velvet-blanco",
+      "price": 96,
+      "description": "Bizcocho rojo con crema de queso y virutas de chocolate blanco. 6–8 porciones.",
+      "image": "imported-red-velvet-chocolate-cake.png",
+      "source_id": "61c79187-76f6-4747-a5cf-d7e26dcea535",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/red-velvet-chocolate-cake.png"
+    },
+    {
+      "category": "bocaditos",
+      "name": "Mini bagels para compartir",
+      "slug": "demo-mini-bagels",
+      "price": 30,
+      "description": "Caja de 12 mini bagels sin relleno para acompañar con cremas dulces.",
+      "image": "imported-members-mark-mini-plain-sliced-bagels.jpg",
+      "source_id": "5ffd3e0b-2a31-4d97-aced-e242b5061b24",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/members-mark-mini-plain-sliced-bagels.jpg"
+    },
+    {
+      "category": "postres",
+      "name": "Mini galletas con confites",
+      "slug": "demo-galletas-confites",
+      "price": 26,
+      "description": "Caja de 24 mini galletas con confites de colores.",
+      "image": "imported-daily-chef-mini-candy-cookies.jpg",
+      "source_id": "c8d5c1c3-15e8-4112-a043-a0d33a8de28d",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/daily-chef-mini-candy-cookies.jpg"
+    },
+    {
+      "category": "bocaditos",
+      "name": "Cuadraditos de hojaldre",
+      "slug": "demo-cuadrados-hojaldre",
+      "price": 32,
+      "description": "Bandeja de 16 cuadrados de hojaldre horneado para acompañar con mermelada.",
+      "image": "imported-gastons-bakery-small-puff-pastry-squares.jpg",
+      "source_id": "92de4c84-2f09-43c3-88e2-c0a000b93037",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/gastons-bakery-small-puff-pastry-squares.jpg"
+    },
+    {
+      "category": "bocaditos",
+      "name": "Surtido dulce de regalo",
+      "slug": "demo-surtido-regalo",
+      "price": 75,
+      "description": "Caja surtida de galletas y bocados de repostería para regalar.",
+      "image": "imported-signature-bakery-assortment.jpg",
+      "source_id": "df52c530-a741-4eb7-9558-d2faaacec380",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/signature-bakery-assortment.jpg"
+    },
+    {
+      "category": "bocaditos",
+      "name": "Mini croissants de mantequilla",
+      "slug": "demo-mini-croissants",
+      "price": 38,
+      "description": "Caja de 12 croissants pequeños de mantequilla, sin relleno.",
+      "image": "imported-gastons-bakery-croissants-1.jpg",
+      "source_id": "334d5358-3cdf-473b-b894-5115b0df7c6f",
+      "source_image": "https://raw.githubusercontent.com/ParasGarg/Online-Grocery-Store/66eeadebbffd5bdb93bcd6df1c0d2de2b2e615e1/public/images/gastons-bakery-croissants-1.jpg"
+    },
+    {
+      "category": "tortas",
+      "name": "Torta de café y cacao",
+      "slug": "demo-torta-de-cafe-y-cacao",
+      "price": 84,
+      "description": "Torta de 20 cm con crema de café y cobertura de cacao. 10 porciones.",
+      "image": "category-cake.webp"
+    },
+    {
+      "category": "tortas",
+      "name": "Torta de naranja",
+      "slug": "demo-torta-de-naranja",
+      "price": 70,
+      "description": "Bizcocho de naranja con glaseado cítrico. 10 porciones.",
+      "image": "category-cake.webp"
+    },
+    {
+      "category": "tortas",
+      "name": "Torta de coco y vainilla",
+      "slug": "demo-torta-de-coco-y-vainilla",
+      "price": 80,
+      "description": "Capas de vainilla con crema de coco. Presentación para 10 personas.",
+      "image": "category-cake.webp"
+    },
+    {
+      "category": "cupcakes",
+      "name": "Cupcakes de limón",
+      "slug": "demo-cupcakes-de-limon",
+      "price": 36,
+      "description": "Caja de 6 cupcakes con crema y ralladura de limón.",
+      "image": "category-cupcakes.webp"
+    },
+    {
+      "category": "cupcakes",
+      "name": "Cupcakes de café",
+      "slug": "demo-cupcakes-de-cafe",
+      "price": 40,
+      "description": "Caja de 6 cupcakes de cacao con crema de café.",
+      "image": "category-cupcakes.webp"
+    },
+    {
+      "category": "cupcakes",
+      "name": "Cupcakes de frutos rojos",
+      "slug": "demo-cupcakes-de-frutos-rojos",
+      "price": 44,
+      "description": "Caja de 6 cupcakes con crema de frutos rojos.",
+      "image": "category-cupcakes.webp"
+    },
+    {
+      "category": "cupcakes",
+      "name": "Cupcakes de coco",
+      "slug": "demo-cupcakes-de-coco",
+      "price": 39,
+      "description": "Caja de 6 cupcakes de vainilla con coco rallado.",
+      "image": "category-cupcakes.webp"
+    },
+    {
+      "category": "postres",
+      "name": "Brownies con nueces",
+      "slug": "demo-brownies-con-nueces",
+      "price": 36,
+      "description": "Caja de 6 brownies de chocolate con nueces.",
+      "image": "category-brownies.webp"
+    },
+    {
+      "category": "postres",
+      "name": "Brownies con caramelo",
+      "slug": "demo-brownies-con-caramelo",
+      "price": 38,
+      "description": "Caja de 6 brownies con una capa de caramelo.",
+      "image": "category-brownies.webp"
+    },
+    {
+      "category": "postres",
+      "name": "Galletas de avena y pasas",
+      "slug": "demo-galletas-de-avena-y-pasas",
+      "price": 24,
+      "description": "Caja de 8 galletas de avena con pasas.",
+      "image": "category-cookies.webp"
+    },
+    {
+      "category": "postres",
+      "name": "Galletas de doble chocolate",
+      "slug": "demo-galletas-de-doble-chocolate",
+      "price": 32,
+      "description": "Caja de 8 galletas de cacao con chispas de chocolate.",
+      "image": "category-cookies.webp"
+    },
+    {
+      "category": "postres",
+      "name": "Vasito de vainilla y frutos rojos",
+      "slug": "demo-vasito-de-vainilla-y-frutos-rojos",
+      "price": 16,
+      "description": "Postre individual de 200 ml con bizcocho, crema y compota.",
+      "image": "category-jar-cake.webp"
+    },
+    {
+      "category": "postres",
+      "name": "Vasito de café y chocolate",
+      "slug": "demo-vasito-de-cafe-y-chocolate",
+      "price": 17,
+      "description": "Postre individual de 200 ml con capas de crema de café y cacao.",
+      "image": "category-jar-cake.webp"
+    },
+    {
+      "category": "postres",
+      "name": "Donas con chocolate",
+      "slug": "demo-donas-con-chocolate",
+      "price": 38,
+      "description": "Caja de 6 donas con cobertura de chocolate.",
+      "image": "catergory-donuts.webp"
+    },
+    {
+      "category": "bocaditos",
+      "name": "Mini cupcakes para eventos",
+      "slug": "demo-mini-cupcakes-para-eventos",
+      "price": 54,
+      "description": "Bandeja de 24 mini cupcakes de vainilla y chocolate.",
+      "image": "category-cupcakes.webp"
+    },
+    {
+      "category": "bocaditos",
+      "name": "Trufas de coco",
+      "slug": "demo-trufas-de-coco",
+      "price": 40,
+      "description": "Caja de 12 trufas de chocolate blanco con coco.",
+      "image": "category-chocolates.webp"
+    },
+    {
+      "category": "bocaditos",
+      "name": "Box tarde dulce",
+      "slug": "demo-box-tarde-dulce",
+      "price": 64,
+      "description": "Caja para compartir con 4 brownies, 8 galletas y 6 bombones.",
+      "image": "category-gift-hampers.webp"
+    }
+  ]
+}

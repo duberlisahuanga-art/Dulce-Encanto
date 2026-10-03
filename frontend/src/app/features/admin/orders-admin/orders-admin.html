@@ -1,0 +1,132 @@
+<main>
+  <header>
+    <div>
+      <p>Administración</p>
+      <h1>Pedidos</h1>
+    </div>
+    <label
+      >Estado<select
+        [value]="statusFilter()"
+        (change)="statusFilter.set($any($event.target).value); load()"
+      >
+        <option value="">Todos</option>
+        @for (status of statuses; track status.value) {
+          <option [value]="status.value">{{ status.label }}</option>
+        }
+      </select></label
+    >
+  </header>
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  <p role="status" aria-live="polite">{{ saving() ? "Guardando…" : message() }}</p>
+  <button type="button" (click)="load()" [disabled]="!!saving()">Actualizar pedidos</button>
+  <section class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Pedido</th>
+          <th>Cliente</th>
+          <th>Entrega</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Repartidor</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (order of orders(); track order.id) {
+          <tr>
+            <td>
+              <strong>{{ order.number }}</strong
+              ><small>{{ order.placed_at | date: 'dd/MM/yyyy HH:mm' }}</small>
+            </td>
+            <td>
+              {{ order.customer?.name }}<small>{{ order.customer?.email }}</small>
+            </td>
+            <td>
+              {{ order.delivery_date | date: 'dd/MM/yyyy'
+              }}<small>{{ order.delivery_method === 'delivery' ? 'Delivery' : 'Recojo' }}</small>
+            </td>
+            <td>{{ +order.total | currency: 'PEN' : 'symbol' : '1.2-2' }}</td>
+            <td>
+              <select #statusSelect [ngModel]="order.status" [disabled]="!!saving() || availableStatuses(order).length < 2" (change)="update(order, $any($event.target).value, statusSelect)">
+                @for (status of availableStatuses(order); track status.value) {
+                  <option [value]="status.value">{{ status.label }}</option>
+                }
+              </select>
+            </td>
+            <td>
+              @if (order.delivery_method === 'delivery' && can('delivery.asignar')) {
+                <select #courierSelect [ngModel]="order.courier?.id ?? ''" [disabled]="!!saving() || ['out_for_delivery','delivered','cancelled'].includes(order.status)" (change)="assign(order, $any($event.target).value, courierSelect)">
+                  <option value="">Sin asignar</option>
+                  @for (courier of couriers(); track courier.id) { <option [value]="courier.id">{{ courier.name }}</option> }
+                </select>
+              } @else { <small>{{ order.delivery_method === 'delivery' ? (order.courier?.name || 'Sin asignar') : 'No aplica' }}</small> }
+            </td>
+            <td><button (click)="show(order)">Ver</button></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">No hay pedidos registrados.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+  @if (selected(); as order) {
+    <section class="detail" role="dialog" aria-modal="true" [attr.aria-label]="'Detalle del pedido ' + order.number">
+      <header class="detail-header">
+        <div><p>Pedido</p><h2>{{ order.number }}</h2></div>
+        <button class="close" type="button" aria-label="Cerrar detalle" (click)="selected.set(null)">×</button>
+      </header>
+      <div class="status-summary">
+        <span class="status-pill" [class]="'status-pill ' + order.status">{{ statusLabel(order.status) }}</span>
+        <p>{{ nextAction(order) }}</p>
+      </div>
+      @if (order.status !== 'cancelled') {
+        <ol class="workflow" aria-label="Progreso del pedido">
+          @for (step of workflowSteps(order); track step.value; let index = $index) {
+            <li [class.active]="workflowActive(order, index)" [class.current]="step.value === order.status"><span>{{ workflowActive(order, index) ? '✓' : index + 1 }}</span><small>{{ step.label }}</small></li>
+          }
+        </ol>
+      }
+      <section class="info-card customer-info">
+        <p class="eyebrow">Cliente</p><strong>{{ order.customer?.name }}</strong>
+        <div class="contact-line"><span>Teléfono</span><a [href]="'tel:' + order.phone">{{ order.phone }}</a></div>
+        <div class="contact-line"><span>Correo</span><small>{{ order.customer?.email }}</small></div>
+      </section>
+      <section class="info-card fulfillment-info">
+        <p class="eyebrow">{{ order.delivery_method === 'delivery' ? 'Entrega a domicilio' : 'Recojo en tienda' }}</p>
+        <strong>{{ order.delivery_date | date: 'EEEE, dd MMMM yyyy' }}</strong>
+        @if (order.delivery_method === 'delivery') {
+          <div class="address"><span>Dirección</span><p>{{ order.address }}</p></div>
+          <div class="courier"><span>Repartidor</span><strong>{{ order.courier?.name || 'Aún sin asignar' }}</strong></div>
+        } @else { <p>El cliente recoge su pedido en la tienda.</p> }
+      </section>
+      @if (mapUrl(order); as map) { <section class="location"><p><b>Ubicación del repartidor</b> · actualizada {{ order.courier?.location_updated_at | date: 'dd/MM HH:mm' }}</p><iframe title="Ubicación del repartidor" [src]="map"></iframe></section> } @else if (order.delivery_method === 'delivery' && order.status === 'out_for_delivery') { <p class="location-waiting">Esperando la ubicación GPS del repartidor.</p> }
+      <section class="items-section"><h3>Productos</h3>
+        @for (item of order.items; track item.id) { <div class="item-row"><span>{{ item.quantity }} × {{ item.name }}</span><strong>{{ +item.subtotal | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong></div> }
+      </section>
+      @if (order.cancellation_request) { <section class="cancellation-notice"><p class="eyebrow">Solicitud de cancelación</p><strong>Motivo indicado por el cliente</strong><p>{{ order.cancellation_request }}</p></section> }
+      <section class="history"><h3>Historial</h3>
+        @for (change of history(); track change.id) {
+          <article class="history-entry">
+            <span class="history-dot"></span>
+            <div>
+              <div class="history-meta"><span>{{ change.created_at | date:'dd/MM/yyyy HH:mm' }}</span><span>{{ change.actor_name }}</span></div>
+              <strong>{{ change.field === 'status' ? 'Estado del pedido' : change.field === 'courier' ? 'Repartidor asignado' : 'Solicitud de cancelación' }}</strong>
+              <p class="history-change"><span>{{ change.field === 'status' ? statusLabel($any(change.old_value)) : (change.old_value || 'Sin asignar') }}</span><b>→</b><span>{{ change.field === 'status' ? statusLabel($any(change.new_value)) : change.new_value }}</span></p>
+              @if (change.reason) { <small class="history-reason">Motivo: {{ change.reason }}</small> }
+            </div>
+          </article>
+        } @empty { <p class="empty-history">Sin cambios registrados.</p> }
+      </section>
+      <footer class="order-total">
+        <span>Subtotal de productos <b>{{ itemsTotal(order) | currency: 'PEN' : 'symbol' : '1.2-2' }}</b></span>
+        <strong>Total del pedido <b>{{ +order.total | currency: 'PEN' : 'symbol' : '1.2-2' }}</b></strong>
+        @if (hasAdjustedTotal(order)) { <small>El total incluye promociones aplicadas y el costo de entrega, si corresponde.</small> }
+      </footer>
+    </section>
+  }
+</main>

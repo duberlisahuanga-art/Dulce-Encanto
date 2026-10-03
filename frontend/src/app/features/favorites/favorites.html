@@ -1,0 +1,43 @@
+<main>
+  <section class="hero">
+    <p>Tu selección dulce</p>
+    <h1>Mis favoritos</h1>
+    <span>Guarda tus productos preferidos y vuelve a pedirlos en menos pasos.</span>
+  </section>
+
+  @if (loading()) {
+    <p class="status">Cargando favoritos…</p>
+  } @else if (error()) {
+    <p class="status error">{{ error() }}</p>
+  } @else if (!favorites.products().length) {
+    <section class="empty">
+      <span>♡</span>
+      <h2>Aún no guardaste favoritos</h2>
+      <p>Explora el catálogo y marca tus tortas, postres o bebidas favoritas.</p>
+      <a routerLink="/catalogo">Ver catálogo</a>
+    </section>
+  } @else {
+    <section class="grid">
+      @for (product of favorites.products(); track product.id) {
+        <article>
+          <a class="image" [routerLink]="['/catalogo', product.slug]">
+            @if (product.image_url) {
+              <img [src]="product.image_url" [alt]="product.name" (error)="imageFailed($event)" />
+            }
+            <span>🧁</span>
+          </a>
+          <div>
+            <small>{{ product.category?.name ?? 'Dulce Encanto' }}</small>
+            <a class="name" [routerLink]="['/catalogo', product.slug]">{{ product.name }}</a>
+            <p>{{ product.description || 'Preparado artesanalmente para ti.' }}</p>
+            <footer>
+              <strong>{{ displayPrice(product) | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong>
+              <button type="button" (click)="remove(product)">Quitar ♡</button>
+            </footer>
+            <app-product-quantity [productId]="product.id" />
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

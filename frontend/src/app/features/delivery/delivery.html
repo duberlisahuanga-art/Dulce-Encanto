@@ -1,0 +1,30 @@
+<main><header><p>Reparto</p><h1>Mis entregas</h1><span>Pedidos asignados y ordenados por fecha.</span><p class="gps-status">{{ gpsStatus() }}</p></header>
+@if (error()) { <p class="error">{{ error() }}</p> }
+@if (loading()) { <p>Cargando entregas…</p> }
+<section class="deliveries">@for (order of orders(); track order.id) {
+  <article><div class="heading"><div><small>{{ order.delivery_date | date: 'dd/MM/yyyy' }}</small><h2>{{ order.number }}</h2></div><b [class.route]="order.status === 'out_for_delivery'">{{ order.status === 'out_for_delivery' ? 'En ruta' : order.status === 'delivered' ? 'Entregado' : order.status === 'ready' ? 'Listo para reparto' : 'Esperando preparación' }}</b></div>
+  <p><strong>{{ order.customer?.name }}</strong> · <a [href]="'tel:' + order.phone">{{ order.phone }}</a></p><address>{{ order.address }}</address>
+  @if (order.notes) { <p><b>Indicaciones:</b> {{ order.notes }}</p> }
+  <div class="delivery-actions">
+    @if (order.latitude != null && order.longitude != null) { <a target="_blank" rel="noopener" [href]="'https://www.google.com/maps/search/?api=1&query=' + order.latitude + ',' + order.longitude">Ver dirección</a><a target="_blank" rel="noopener" [href]="'https://www.google.com/maps/dir/?api=1&destination=' + order.latitude + ',' + order.longitude">Abrir ruta</a> }
+    @if (order.status === 'ready') { <button [disabled]="savingOrderId() !== null" (click)="advance(order)">{{ savingOrderId() === order.id ? 'Iniciando…' : 'Iniciar reparto' }}</button> } @else if (order.status === 'out_for_delivery') { <button [disabled]="savingOrderId() !== null" (click)="advance(order)">{{ savingOrderId() === order.id ? 'Guardando…' : 'Marcar como entregado' }}</button> }
+  </div>
+  @if (order.status === 'out_for_delivery') {
+    @if (order.delivery_issue) {
+      <div class="delivery-issue" role="status">
+        <strong>{{ issueLabel(order.delivery_issue) }}</strong>
+        <span>{{ order.delivery_issue_note }}</span>
+        <button type="button" [disabled]="issueOrderId() !== null" (click)="resolveIssue(order)">Marcar como resuelto</button>
+      </div>
+    } @else {
+      <div class="issue-actions" aria-label="Reportar incidencia">
+        <span>Reportar:</span>
+        <button type="button" [disabled]="issueOrderId() !== null" (click)="reportIssue(order, 'delayed')">Demora</button>
+        <button type="button" [disabled]="issueOrderId() !== null" (click)="reportIssue(order, 'customer_unreachable')">No responde</button>
+        <button type="button" [disabled]="issueOrderId() !== null" (click)="reportIssue(order, 'address_problem')">Dirección</button>
+      </div>
+    }
+  }
+  @if (order.status === 'out_for_delivery') { <p class="route-start">En ruta desde {{ order.dispatched_at | date: 'HH:mm' }} · {{ gpsStatus() }}</p> }
+  </article>
+} @empty { @if (!loading()) { <p>No tienes entregas asignadas.</p> } }</section></main>

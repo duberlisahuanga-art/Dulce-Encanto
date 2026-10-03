@@ -1,0 +1,326 @@
+main {
+  max-width: 68rem;
+  margin: auto;
+  padding: 3rem clamp(1rem, 4vw, 3rem);
+}
+header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+header p,
+article small {
+  color: #a34f68;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+h1,
+h2 {
+  font-family: Georgia, serif;
+  color: #4a2932;
+}
+h1 {
+  margin: 0.4rem;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+}
+header span {
+  color: #76505b;
+}
+.orders {
+  display: grid;
+  gap: 1.2rem;
+}
+article,
+.empty {
+  padding: 1.4rem;
+  border: 1px solid #ead6db;
+  border-radius: 1rem;
+  background: white;
+}
+.order-head,
+.order-head > div:last-child,
+article footer,
+.items p {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.order-head h2 {
+  margin: 0.25rem 0;
+}
+.order-head > div:last-child {
+  align-items: flex-end;
+  flex-direction: column;
+}
+.order-head strong {
+  color: #8f3f59;
+  font-size: 1.3rem;
+}
+.progress {
+  display: grid;
+  grid-template-columns: repeat(var(--steps, 6), minmax(0, 1fr));
+  margin: 1.5rem 0;
+}
+.progress span {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  color: #a89299;
+}
+.progress span::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 0.8rem;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: #ead6db;
+}
+.progress span:first-child::before {
+  display: none;
+}
+.progress b {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: #ead6db;
+}
+.progress span.completed,
+.progress span.current {
+  color: #347052;
+}
+.progress span.completed b,
+.progress span.completed::before,
+.progress span.current::before {
+  background: #8dc6aa;
+  color: white;
+}
+.progress span.current b {
+  color: white;
+  background: #347052;
+  box-shadow: 0 0 0 4px #dcefe5;
+}
+.progress small {
+  font-size: 0.6rem;
+  letter-spacing: 0;
+}
+.items {
+  padding: 1rem 0;
+  border-block: 1px solid #eee;
+}
+.items p {
+  margin: 0.45rem 0;
+}
+article footer {
+  margin-top: 1rem;
+  color: #76505b;
+}
+.empty,
+.status {
+  text-align: center;
+}
+.empty > span {
+  font-size: 4rem;
+}
+.empty a {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  border-radius: 0.7rem;
+  color: white;
+  background: #8f3f59;
+  text-decoration: none;
+}
+.error {
+  color: #a1203f;
+}
+.order-status-message {
+  max-width: 34rem;
+  margin: 0.3rem 0 0;
+  color: #76505b;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.connection-warning {
+  margin: 0 0 0.75rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ebd39c;
+  border-radius: 0.75rem;
+  color: #745515;
+  background: #fff9e9;
+}
+.last-update {
+  margin: 0 0 0.75rem;
+  color: #84616c;
+  text-align: right;
+  font-size: 0.75rem;
+}
+.timeline {
+  display: flex;
+  gap: 0.75rem;
+  margin: -0.2rem 0 1rem;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+}
+.timeline li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: max-content;
+  color: #684852;
+  font-size: 0.76rem;
+}
+.timeline li > span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #8dc6aa;
+}
+.timeline li div {
+  display: grid;
+}
+.timeline time {
+  color: #937780;
+  font-size: 0.68rem;
+}
+.tracking {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #d7eadf;
+  border-radius: 0.9rem;
+  background: #f5fbf7;
+}
+.tracking-head,
+.tracking-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.tracking-head h3 {
+  margin: 0.2rem 0;
+  color: #315b47;
+  font-family: Georgia, serif;
+}
+.live-dot {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  color: #fff;
+  background: #3b805d;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.live-dot.stale {
+  color: #6f541a;
+  background: #f2d88f;
+}
+.tracking-meta {
+  margin: 0.75rem 0;
+  color: #5d7367;
+  font-size: 0.78rem;
+}
+.tracking-button {
+  margin-bottom: 0.8rem;
+  padding: 0.65rem 0.85rem;
+  border: 0;
+  border-radius: 0.6rem;
+  color: #fff;
+  background: #3b805d;
+  font-weight: 800;
+  cursor: pointer;
+}
+.waiting-location {
+  margin: 0.75rem 0 0;
+  color: #76505b;
+}
+.delivery-issue {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.75rem 0;
+  padding: 0.8rem;
+  border: 1px solid #efd28c;
+  border-radius: 0.7rem;
+  color: #6f5113;
+  background: #fff7df;
+}
+.delivery-issue small { color: #806629; }
+@media (max-width: 600px) {
+  .progress { grid-template-columns: 1fr; gap: 1rem; }
+  .progress span { grid-template-columns: 1.7rem 1fr; justify-items: start; align-items: center; gap: .7rem; }
+  .progress small { display: block; font-size: .8rem; }
+  .progress span::before { left: .8rem; right: auto; top: -1rem; width: 2px; height: 1rem; }
+  article footer { flex-wrap: wrap; }
+
+  .order-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .order-head > div:last-child { align-items: flex-start; }
+  .items p {
+    font-size: 0.85rem;
+  }
+}
+
+.progress small{text-align:center;overflow-wrap:anywhere;padding:.4rem .15rem}.progress span{min-width:0}article{min-width:0}
+.order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+.cancel-button,
+.repeat-button {
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.cancel-button {
+  border-color: #b45b74;
+  color: #8f3f59;
+  background: #fff;
+}
+.cancel-button:hover {
+  border-color: #8f3f59;
+  color: #743047;
+  background: #fff0f4;
+}
+.repeat-button {
+  color: white;
+  background: #8f3f59;
+}
+.repeat-button:hover:not(:disabled) {
+  background: #743047;
+}
+.cancel-button:focus-visible,
+.repeat-button:focus-visible {
+  outline: 3px solid #e8b9c7;
+  outline-offset: 3px;
+}
+.repeat-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.cancellation-request {
+  margin: 0.8rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #efd3dc;
+  border-radius: 0.7rem;
+  color: #71364a;
+  background: #fff4f7;
+}
+@media (max-width: 430px) {
+  .order-actions > button {
+    width: 100%;
+  }
+}
+.repeat-button:disabled { opacity: .65; cursor: wait; }

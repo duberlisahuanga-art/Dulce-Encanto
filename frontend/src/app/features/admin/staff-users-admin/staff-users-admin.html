@@ -1,0 +1,24 @@
+<main>
+  <header><p>Configuración</p><h1>Equipo y accesos</h1><span>Crea cuentas internas y asigna solo el rol necesario.</span></header>
+  <section class="layout">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <h2>{{ editing() ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+      <label>Nombre<input formControlName="name" /></label>
+      <label>Correo<input type="email" formControlName="email" /></label>
+      <label>Rol<select formControlName="role"><option value="administrador">Administrador</option><option value="vendedor">Vendedor</option><option value="repartidor">Repartidor</option></select></label>
+      <label>Contraseña <small>{{ editing() ? '(dejar vacía para conservarla)' : '' }}</small><input type="password" formControlName="password" /></label>
+      <label>Confirmar contraseña<input type="password" formControlName="password_confirmation" /></label>
+      <fieldset><legend>Permisos adicionales</legend><small>Se suman a los permisos incluidos en el rol.</small><div class="permissions">@for (permission of availablePermissions; track permission) { <label><input type="checkbox" [checked]="hasPermission(permission)" (change)="togglePermission(permission, $any($event.target).checked)" /> {{ permission }}</label> }</div></fieldset>
+      @if (error()) { <p class="message error">{{ error() }}</p> }
+      @if (success()) { <p class="message success">{{ success() }}</p> }
+      <div class="actions"><button type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar usuario' }}</button>@if (editing()) { <button type="button" class="secondary" (click)="cancel()">Cancelar</button> }</div>
+    </form>
+    <section class="users">
+      <h2>Usuarios internos</h2>
+      @if (loading()) { <p>Cargando…</p> }
+      @for (user of users(); track user.id) {
+        <article><span class="avatar">{{ user.name.charAt(0).toUpperCase() }}</span><div><strong>{{ user.name }}</strong><small>{{ user.email }}</small></div><b>{{ user.role }}</b><div class="user-actions"><button type="button" (click)="edit(user)">Editar</button><button type="button" class="danger" (click)="remove(user)">Eliminar</button></div></article>
+      } @empty { @if (!loading()) { <p>No hay usuarios internos.</p> } }
+    </section>
+  </section>
+</main>

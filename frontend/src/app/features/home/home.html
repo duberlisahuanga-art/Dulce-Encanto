@@ -1,0 +1,248 @@
+<main class="home">
+  <section class="hero page-width" aria-labelledby="home-title">
+    <div class="hero-copy">
+      <p class="eyebrow">Hecho para celebrar</p>
+      <h1 id="home-title">Tu próxima celebración empieza con algo dulce.</h1>
+      <p class="lead">Tortas, postres y detalles para compartir.</p>
+      <div class="actions">
+        <a routerLink="/catalogo" class="button primary">Ver catálogo</a>
+        <a routerLink="/disena-tu-torta" class="button secondary">Personalizar mi torta</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img
+        src="/images/home/hero.webp"
+        alt="Torta de crema decorada con fresas sobre un pedestal"
+        width="1536"
+        height="1024"
+        fetchpriority="high"
+      />
+    </div>
+  </section>
+
+  <section class="assistant-invite page-width" aria-label="Ayuda para elegir">
+    <span class="assistant-invite-icon" aria-hidden="true">✦</span>
+    <p><strong>¿No sabes qué elegir?</strong> Cuéntanos qué se te antoja y te ayudamos a encontrarlo.</p>
+    <button type="button" (click)="assistant.open()">Te ayudo a elegir <span aria-hidden="true">→</span></button>
+  </section>
+
+  <section class="categories page-width" aria-labelledby="categories-title">
+    <h2 id="categories-title">¿Qué se te antoja?</h2>
+    <div class="category-grid">
+      @for (category of categories(); track category.id) {
+        <a class="category" routerLink="/catalogo" [queryParams]="{ categoria: category.slug }">
+          <span class="category-photo">
+            @if (categoryImage(category); as image) {
+              <img
+                [src]="image"
+                [alt]="category.name"
+                width="240"
+                height="240"
+                loading="lazy"
+                (error)="hideBrokenImage($event)"
+              />
+            } @else {
+              <span class="photo-placeholder">{{ category.name }}</span>
+            }
+          </span>
+          <h3>{{ category.name }}</h3>
+          <span class="category-count"
+            >{{ categoryCount(category) }}
+            {{ categoryCount(category) === 1 ? 'producto' : 'productos' }}</span
+          >
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="products-section page-width" aria-labelledby="products-title">
+    <div class="section-heading">
+      <h2 id="products-title">Los más pedidos</h2>
+      <a class="text-link" routerLink="/catalogo">Ver catálogo <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="product-grid">
+      @for (product of products(); track product.id) {
+        <a class="product-card" [routerLink]="['/catalogo', product.slug]">
+          <div class="product-photo">
+            @if (product.image_url) {
+              <img
+                [src]="product.image_url"
+                [alt]="product.name"
+                loading="lazy"
+                width="400"
+                height="400"
+                (error)="hideBrokenImage($event)"
+              />
+            } @else {
+              <span class="photo-placeholder">Dulce Encanto</span>
+            }
+          </div>
+          <h3>{{ product.name }}</h3>
+          <span class="price">{{
+            +(product.discounted_price ?? product.price) | currency: 'PEN' : 'S/ ' : '1.2-2'
+          }}</span>
+          <span class="detail-button">Ver detalle <span aria-hidden="true">→</span></span>
+        </a>
+      } @empty {
+        <p class="empty-state">
+          Estamos preparando nuevos antojos. <a routerLink="/catalogo">Explora el catálogo</a>.
+        </p>
+      }
+    </div>
+  </section>
+
+  @if (auth.authenticated() && favorites.products().length) {
+    <section class="products-section page-width" aria-labelledby="favorites-title">
+      <div class="section-heading">
+        <h2 id="favorites-title">Tus favoritos</h2>
+        <a class="text-link" routerLink="/favoritos">Ver todos <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="product-grid">
+        @for (product of favorites.products().slice(0, 4); track product.id) {
+          <a class="product-card" [routerLink]="['/catalogo', product.slug]">
+            <div class="product-photo">
+              @if (product.image_url) {
+                <img
+                  [src]="product.image_url"
+                  [alt]="product.name"
+                  loading="lazy"
+                  width="400"
+                  height="400"
+                  (error)="hideBrokenImage($event)"
+                />
+              } @else {
+                <span class="photo-placeholder">Dulce Encanto</span>
+              }
+            </div>
+            <h3>{{ product.name }}</h3>
+            <span class="price">{{
+              +(product.discounted_price ?? product.price) | currency: 'PEN' : 'S/ ' : '1.2-2'
+            }}</span>
+            <span class="detail-button">Ver detalle <span aria-hidden="true">→</span></span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="steps" aria-labelledby="steps-title">
+    <div class="page-width">
+      <h2 id="steps-title">Tu torta, a tu manera</h2>
+      <p class="steps-lead">Crea algo especial en tres pasos.</p>
+      <ol class="step-grid">
+        <li>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path
+              d="M9 24h30v17H9zM9 31c5 5 10-5 15 0s10-5 15 0M16 24v-7h16v7M24 17V9m0 0c-5-4 0-7 0-7s5 3 0 7M6 41h36"
+            />
+          </svg>
+          <div>
+            <span class="step-number">01</span>
+            <h3>Elige sabor y tamaño</h3>
+          </div>
+        </li>
+        <li>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M25 5C12 5 5 14 5 25s9 18 18 18c6 0 8-4 5-8-3-5 1-8 6-7 12 2 14-23-9-23Z" />
+            <circle cx="16" cy="16" r="2" />
+            <circle cx="28" cy="13" r="2" />
+            <circle cx="36" cy="21" r="2" />
+            <circle cx="13" cy="28" r="2" />
+          </svg>
+          <div>
+            <span class="step-number">02</span>
+            <h3>Agrega tu toque</h3>
+          </div>
+        </li>
+        <li>
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <rect x="8" y="10" width="32" height="32" rx="3" />
+            <path d="M8 20h32M17 5v10M31 5v10m-14 16 5 5 10-10" />
+          </svg>
+          <div>
+            <span class="step-number">03</span>
+            <h3>Programa la entrega</h3>
+          </div>
+        </li>
+      </ol>
+      <a routerLink="/disena-tu-torta" class="button primary"
+        >Personalizar mi torta <span aria-hidden="true">→</span></a
+      >
+    </div>
+  </section>
+
+  <section class="cold-banner page-width" aria-labelledby="cold-title">
+    <div class="cold-copy">
+      <p class="eyebrow">Descubre la Zona fría</p>
+      <h2 id="cold-title">Un antojo para refrescar tu día</h2>
+      <a routerLink="/zona-fria" class="button primary"
+        >Ver postres fríos <span aria-hidden="true">→</span></a
+      >
+    </div>
+    <img
+      src="/images/home/cold-desserts.webp"
+      alt="Postres fríos de maracuyá, fresas y galletas servidos en vasos"
+      width="1536"
+      height="1024"
+      loading="lazy"
+    />
+  </section>
+  @if (promotions().length) {
+    <section class="home-section promos">
+      <p class="eyebrow">Ofertas vigentes</p>
+      <h2>Promociones para disfrutar hoy</h2>
+      @if (promotions().length === 1) {
+        @let promotion = promotions()[0];
+        <article class="promo-featured" [style.--promo-color]="promotion.accent_color">
+          <img *ngIf="promotion.banner_url" [src]="promotion.banner_url" [alt]="promotion.name" />
+          <div class="promo-featured-content">
+            <span>OFERTA ESPECIAL</span>
+            <h3>{{ promotion.name }}</h3>
+            <p>{{ promotion.description }}</p>
+            <strong
+              >{{
+                promotion.discount_type === 'percentage'
+                  ? promotion.discount_value + '%'
+                  : 'S/ ' + promotion.discount_value
+              }}
+              <small>de descuento</small></strong
+            ><a routerLink="/catalogo">{{ promotion.cta_label }} <b>→</b></a>
+          </div>
+        </article>
+      } @else {
+        <div class="promo-cards">
+          @for (promotion of promotions(); track promotion.id) {
+            <article [style.--promo-color]="promotion.accent_color">
+              <img
+                *ngIf="promotion.banner_url"
+                [src]="promotion.banner_url"
+                [alt]="promotion.name"
+              />
+              <div class="promo-content">
+                <span>OFERTA ESPECIAL</span>
+                <h3>{{ promotion.name }}</h3>
+                <p>{{ promotion.description }}</p>
+                <strong
+                  >{{
+                    promotion.discount_type === 'percentage'
+                      ? promotion.discount_value + '%'
+                      : 'S/ ' + promotion.discount_value
+                  }}
+                  de descuento</strong
+                ><a routerLink="/catalogo">{{ promotion.cta_label }}</a>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</main>
+<footer class="home-footer page-width">
+  <a routerLink="/" class="footer-brand" aria-label="Dulce Encanto, inicio">Dulce<br />Encanto</a>
+  <nav aria-label="Enlaces del pie de página">
+    <a routerLink="/catalogo">Catálogo</a><a routerLink="/disena-tu-torta">Personaliza tu torta</a
+    ><a routerLink="/zona-fria">Zona fría</a>
+  </nav>
+  <p>Pequeños antojos,<br />grandes momentos.</p>
+</footer>

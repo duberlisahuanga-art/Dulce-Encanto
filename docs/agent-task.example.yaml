@@ -1,0 +1,16 @@
+# Copia este archivo como .agent-task.yaml en el espacio de trabajo del agente.
+# El contrato limita la tarea, no la capacidad general de Antigravity u otro agente.
+agent: antigravity
+task: nombre_breve_de_la_tarea
+objective: Describe en una oración el resultado esperado.
+
+allowed_paths:
+  - frontend/src/app/features/catalog/**
+  - frontend/src/app/core/catalog/**
+  - backend/tests/Feature/CatalogControllerTest.php
+
+forbidden_paths:
+  - backend/app/Http/Controllers/Api/V1/AuthController.php
+  - backend/database/migrations/**
+  - backend/routes/**
+  - backend/config/**

@@ -1,0 +1,76 @@
+<main class="admin-game">
+  <header><div><span class="eyebrow">Panel administrativo</span><h1>Gestión del juego</h1><p>Configura recorridos, premios y límites. Los cambios se reflejan en la siguiente partida.</p></div><a routerLink="/entrega-dulce" class="secondary">Ver juego ↗</a></header>
+  <nav class="tabs" aria-label="Secciones del juego">
+    <button type="button" [class.active]="view() === 'dashboard'" (click)="switchView('dashboard')">Resumen</button>
+    <button type="button" [class.active]="view() === 'settings'" (click)="switchView('settings')">Configuración</button>
+    <button type="button" [class.active]="view() === 'levels'" (click)="switchView('levels')">Niveles</button>
+    <button type="button" [class.active]="view() === 'obstacles'" (click)="switchView('obstacles')">Obstáculos</button>
+    <button type="button" [class.active]="view() === 'rewards'" (click)="switchView('rewards')">Recompensas</button>
+    <button type="button" [class.active]="view() === 'coupons'" (click)="switchView('coupons')">Cupones</button>
+    <button type="button" [class.active]="view() === 'attempts'" (click)="switchView('attempts')">Partidas</button>
+  </nav>
+  @if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
+  @if (message()) { <p class="notice" role="status">{{ message() }}</p> }
+  @if (loading()) { <div class="panel"><p>Cargando gestión del juego…</p><button type="button" class="secondary" (click)="load()">Reintentar</button></div> }
+  @else {
+    @switch (view()) {
+      @case ('dashboard') {
+        @if (dashboard(); as stats) {
+          <section class="stats" aria-label="Estadísticas del juego">
+            <article class="panel"><span>Partidas</span><strong>{{ stats.total_attempts }}</strong><small>Hoy: {{ stats.attempts_today }}</small></article>
+            <article class="panel"><span>Jugadores</span><strong>{{ stats.unique_players }}</strong><small>Usuarios únicos</small></article>
+            <article class="panel"><span>Completadas</span><strong>{{ stats.completed }}</strong><small>{{ stats.completion_rate }} % de finalización</small></article>
+            <article class="panel"><span>Fallidas</span><strong>{{ stats.failed }}</strong><small>Entregas sin completar</small></article>
+            <article class="panel"><span>Dulce Puntos</span><strong>{{ stats.points_issued }}</strong><small>Entregados</small></article>
+            <article class="panel"><span>Cupones</span><strong>{{ stats.coupons_issued }}</strong><small>Usados: {{ stats.coupons_used }}</small></article>
+          </section>
+          <section class="panel"><h2>Rendimiento</h2><p>Nivel más jugado: <strong>{{ stats.most_played_level || 'Sin partidas' }}</strong></p><p>Puntuación media: <strong>{{ stats.average_score }}</strong> · Integridad media: <strong>{{ stats.average_health }} %</strong></p></section>
+        }
+      }
+      @case ('settings') {
+        @if (settingsDraft; as settings) {
+          <form class="panel form" (ngSubmit)="saveSettings()">
+            <h2>Configuración general</h2>
+            <div class="fields"><label>Nombre del juego<input name="name" [(ngModel)]="settings.name" required maxlength="100" /></label><label>Descripción<input name="description" [(ngModel)]="settings.description" maxlength="500" /></label>
+              <label>Partidas máximas por día<input name="max_daily_attempts" type="number" min="1" max="30" [(ngModel)]="settings.max_daily_attempts" required /></label>
+              <label>Premios diarios<input name="max_daily_prizes" type="number" min="0" max="30" [(ngModel)]="settings.max_daily_prizes" required /></label>
+              <label>Premios semanales<input name="max_weekly_prizes" type="number" min="0" max="100" [(ngModel)]="settings.max_weekly_prizes" required /></label>
+              <label>Multiplicador de puntos<input name="points_multiplier" type="number" min="0" max="5" step="0.1" [(ngModel)]="settings.points_multiplier" required /></label>
+              <label>Integridad inicial<input name="initial_cake_health" type="number" min="1" max="100" [(ngModel)]="settings.initial_cake_health" required /></label>
+              <label class="check"><input name="is_active" type="checkbox" [(ngModel)]="settings.is_active" /> Juego activo</label>
+            </div>
+            <h3>Mensajes</h3><div class="fields"><label>Al iniciar<input name="start_message" [ngModel]="settings.messages?.start" (ngModelChange)="setMessage('start', $event)" maxlength="200" /></label><label>Entrega exitosa<input name="success_message" [ngModel]="settings.messages?.success" (ngModelChange)="setMessage('success', $event)" maxlength="200" /></label><label>Entrega fallida<input name="failure_message" [ngModel]="settings.messages?.failure" (ngModelChange)="setMessage('failure', $event)" maxlength="200" /></label></div>
+            <button type="submit" class="button" [disabled]="busy()">{{ busy() ? 'Guardando…' : 'Guardar configuración' }}</button>
+          </form>
+        }
+      }
+      @case ('levels') {
+        <div class="section-heading"><h2>Niveles</h2><button type="button" class="button" (click)="editLevel()">Crear nivel</button></div>
+        <div class="list">@for (level of levels(); track level.id) { <article class="panel row"><div><strong>{{ level.name }}</strong><span>{{ level.difficulty }} · {{ level.time_limit }} s · {{ level.obstacle_count }} obstáculos · {{ level.is_active ? 'Activo' : 'Inactivo' }}</span></div><button type="button" class="secondary" (click)="editLevel(level)">Editar</button></article> }</div>
+        @if (levelFormOpen()) { <form class="panel form editor" (ngSubmit)="saveLevel()"><h3>{{ levelDraft.id ? 'Editar nivel' : 'Nuevo nivel' }}</h3><div class="fields">
+          <label>Nombre<input name="name" [(ngModel)]="levelDraft.name" required /></label><label>Identificador<input name="slug" [(ngModel)]="levelDraft.slug" required pattern="[a-z0-9-]+" /></label><label>Descripción<input name="description" [(ngModel)]="levelDraft.description" /></label>
+          <label>Dificultad<select name="difficulty" [(ngModel)]="levelDraft.difficulty"><option value="facil">Fácil</option><option value="media">Media</option><option value="dificil">Difícil</option></select></label>
+          <label>Tiempo (s)<input name="time_limit" type="number" min="30" max="90" [(ngModel)]="levelDraft.time_limit" required /></label><label>Integridad<input name="initial_cake_health" type="number" min="1" max="100" [(ngModel)]="levelDraft.initial_cake_health" required /></label>
+          <label>Obstáculos<input name="obstacle_count" type="number" min="1" max="20" [(ngModel)]="levelDraft.obstacle_count" required /></label><label>Puntos por completar<input name="completion_points" type="number" min="0" [(ngModel)]="levelDraft.completion_points" required /></label>
+          <label>Dulce Puntos máximos<input name="dulce_points_reward" type="number" min="0" [(ngModel)]="levelDraft.dulce_points_reward" required /></label><label>1 estrella desde<input name="one_star_score" type="number" min="0" [(ngModel)]="levelDraft.one_star_score" required /></label><label>2 estrellas desde<input name="two_star_score" type="number" min="0" [(ngModel)]="levelDraft.two_star_score" required /></label><label>3 estrellas desde<input name="three_star_score" type="number" min="0" [(ngModel)]="levelDraft.three_star_score" required /></label><label>Orden<input name="sort_order" type="number" min="0" [(ngModel)]="levelDraft.sort_order" required /></label><label class="check"><input name="is_active" type="checkbox" [(ngModel)]="levelDraft.is_active" /> Activo</label>
+        </div><div class="actions"><button type="submit" class="button" [disabled]="busy()">Guardar nivel</button><button type="button" class="secondary" (click)="levelFormOpen.set(false)">Cerrar</button></div></form> }
+      }
+      @case ('obstacles') {
+        <div class="section-heading"><h2>Obstáculos</h2><button type="button" class="button" (click)="editObstacle()">Crear obstáculo</button></div>
+        <div class="list">@for (obstacle of obstacles(); track obstacle.id) { <article class="panel row"><div><strong>{{ obstacle.sprite }} {{ obstacle.name }}</strong><span>Daño {{ obstacle.damage }} % · Penalización {{ obstacle.score_penalty }} · {{ obstacle.is_active ? 'Activo' : 'Inactivo' }}</span></div><button type="button" class="secondary" (click)="editObstacle(obstacle)">Editar</button></article> }</div>
+        @if (obstacleFormOpen()) { <form class="panel form editor" (ngSubmit)="saveObstacle()"><h3>{{ obstacleDraft.id ? 'Editar obstáculo' : 'Nuevo obstáculo' }}</h3><div class="fields"><label>Nombre<input name="name" [(ngModel)]="obstacleDraft.name" required /></label><label>Tipo<input name="type" [(ngModel)]="obstacleDraft.type" required /></label><label>Daño (%)<input name="damage" type="number" min="0" max="100" [(ngModel)]="obstacleDraft.damage" required /></label><label>Penalización<input name="score_penalty" type="number" min="0" [(ngModel)]="obstacleDraft.score_penalty" required /></label><label>Velocidad (preparado para futuros mapas)<input name="speed" type="number" min="0" max="10" step="0.1" [(ngModel)]="obstacleDraft.speed" required /></label><label>Icono<input name="sprite" [(ngModel)]="obstacleDraft.sprite" maxlength="20" /></label><label class="check"><input name="is_active" type="checkbox" [(ngModel)]="obstacleDraft.is_active" /> Activo</label></div><div class="actions"><button type="submit" class="button" [disabled]="busy()">Guardar obstáculo</button><button type="button" class="secondary" (click)="obstacleFormOpen.set(false)">Cerrar</button></div></form> }
+      }
+      @case ('rewards') {
+        <div class="section-heading"><h2>Recompensas</h2><button type="button" class="button" (click)="editReward()">Crear recompensa</button></div>
+        <div class="list">@for (reward of rewards(); track reward.id) { <article class="panel row"><div><strong>{{ reward.name }}</strong><span>{{ reward.points_required }} Dulce Puntos · Compra mínima S/ {{ reward.minimum_purchase }} · {{ reward.is_active ? 'Activa' : 'Inactiva' }}</span></div><button type="button" class="secondary" (click)="editReward(reward)">Editar</button></article> }</div>
+        @if (rewardFormOpen()) { <form class="panel form editor" (ngSubmit)="saveReward()"><h3>{{ rewardDraft.id ? 'Editar recompensa' : 'Nueva recompensa' }}</h3><div class="fields"><label>Nombre<input name="name" [(ngModel)]="rewardDraft.name" required /></label><label>Descripción<input name="description" [(ngModel)]="rewardDraft.description" /></label><label>Puntos requeridos<input name="points_required" type="number" min="1" [(ngModel)]="rewardDraft.points_required" required /></label><label>Tipo<select name="reward_type" [(ngModel)]="rewardDraft.reward_type"><option value="fixed_discount">Descuento fijo</option><option value="percentage_discount">Descuento porcentual</option><option value="free_delivery">Delivery gratis</option></select></label><label>Valor<input name="reward_value" type="number" min="0" step="0.01" [(ngModel)]="rewardDraft.reward_value" required /></label><label>Compra mínima<input name="minimum_purchase" type="number" min="0" step="0.01" [(ngModel)]="rewardDraft.minimum_purchase" required /></label><label>Vigencia (días)<input name="expiration_days" type="number" min="1" [(ngModel)]="rewardDraft.expiration_days" required /></label><label>Canjes totales máximos<input name="max_redemptions" type="number" min="1" [(ngModel)]="rewardDraft.max_redemptions" placeholder="Sin límite" /></label><label>Canjes por usuario<input name="max_per_user" type="number" min="1" [(ngModel)]="rewardDraft.max_per_user" required /></label><label class="check"><input name="is_active" type="checkbox" [(ngModel)]="rewardDraft.is_active" /> Activa</label></div><div class="actions"><button type="submit" class="button" [disabled]="busy()">Guardar recompensa</button><button type="button" class="secondary" (click)="rewardFormOpen.set(false)">Cerrar</button></div></form> }
+      }
+      @case ('coupons') {
+        <h2>Cupones emitidos</h2><div class="list">@for (coupon of coupons(); track coupon.id) { <article class="panel row"><div><strong>{{ coupon.promotion?.coupon_code }}</strong><span>{{ coupon.reward?.name }} · Usuario #{{ coupon.user_id }} · {{ coupon.promotion?.uses_count ? 'Usado' : 'Disponible' }} · Vence {{ coupon.promotion?.ends_at }}</span></div></article> } @empty { <p class="panel">Todavía no hay cupones canjeados.</p> }</div>
+      }
+      @case ('attempts') {
+        <h2>Partidas recientes</h2><div class="list">@for (attempt of attempts(); track attempt.id) { <article class="panel row"><div><strong>{{ attempt.user?.name || 'Jugador' }} · {{ attempt.level?.name || 'Nivel' }}</strong><span>{{ attempt.started_at.slice(0, 16) }} · {{ attempt.status }} · {{ attempt.final_score }} puntos · {{ attempt.stars }} estrellas · +{{ attempt.dulce_points_earned }} Dulce Puntos</span></div></article> } @empty { <p class="panel">Aún no hay partidas.</p> }</div>
+      }
+    }
+  }
+</main>

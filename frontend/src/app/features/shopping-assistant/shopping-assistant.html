@@ -1,0 +1,112 @@
+<button
+  #launcher
+  class="launcher"
+  type="button"
+  (click)="state.open()"
+  [attr.aria-expanded]="state.opened()"
+  aria-haspopup="dialog"
+  aria-controls="shopping-assistant-dialog"
+  aria-label="Abrir asistente para elegir productos"
+>
+  <span class="launcher-icon" aria-hidden="true">✦</span>
+  <span class="launcher-label">Te ayudo a elegir</span>
+</button>
+<dialog
+  #assistantDialog
+  id="shopping-assistant-dialog"
+  class="assistant-dialog"
+  aria-labelledby="assistant-title"
+  (close)="onDialogClose()"
+  (click)="onDialogClick($event)"
+>
+<section class="assistant" aria-labelledby="assistant-title">
+  <div class="intro">
+    <div>
+      <p class="eyebrow">Asistente de Dulce Encanto</p>
+      <h2 id="assistant-title">Encuentra tu antojo</h2>
+      <p>Describe tu ocasión, sabores o número de personas. Te sugeriremos productos del catálogo.</p>
+    </div>
+    <button class="close-button" type="button" (click)="state.close()" aria-label="Cerrar asistente" autofocus>×</button>
+  </div>
+
+  <form (submit)="ask($event)">
+    <label for="assistant-request">¿Qué estás buscando?</label>
+    <textarea
+      id="assistant-request"
+      rows="3"
+      minlength="8"
+      maxlength="400"
+      required
+      placeholder="Por ejemplo: una torta de chocolate para un cumpleaños de 12 personas"
+      [value]="request()"
+      (input)="request.set($any($event.target).value)"
+    ></textarea>
+    <div class="form-bottom">
+      <div class="budget-field">
+        <label for="assistant-budget">Presupuesto máximo por producto (opcional)</label>
+        <div class="budget-input"><span>S/</span><input
+          id="assistant-budget"
+          type="number"
+          min="1"
+          max="2000"
+          step="0.01"
+          inputmode="decimal"
+          placeholder="100"
+          [value]="budget()"
+          (input)="budget.set($any($event.target).value)"
+        /></div>
+      </div>
+      <button type="submit" [disabled]="loading() || request().trim().length < 8">
+        {{ loading() ? 'Buscando opciones…' : 'Buscar sugerencias' }} <span aria-hidden="true">→</span>
+      </button>
+    </div>
+  </form>
+  <div class="examples" aria-label="Ejemplos de búsqueda">
+    <span>Prueba con:</span>
+    <button type="button" (click)="example('Quiero una torta para un cumpleaños de 12 personas')">Torta de cumpleaños</button>
+    <button type="button" (click)="example('Busco un postre pequeño para regalar')">Un postre para regalar</button>
+  </div>
+
+  @if (error()) {
+    <p class="feedback error" role="alert">{{ error() }}</p>
+  }
+  @if (loading()) {
+    <p class="feedback" role="status">Estamos buscando opciones para ti…</p>
+  }
+  @if (answer(); as result) {
+    <div class="results" aria-live="polite">
+      <p class="feedback">{{ result.message }}</p>
+      @if (result.recommendations.length) {
+        <div class="recommendations">
+          @for (recommendation of result.recommendations; track recommendation.product.id) {
+            <article class="recommendation">
+              @if (recommendation.product.image_url) {
+                <img [src]="recommendation.product.image_url" [alt]="recommendation.product.name" loading="lazy" />
+              } @else {
+                <span class="placeholder" aria-hidden="true">🍰</span>
+              }
+              <div class="recommendation-copy">
+                <h3>{{ recommendation.product.name }}</h3>
+                <p>{{ recommendation.reason }}</p>
+                <strong>{{ +(recommendation.product.discounted_price ?? recommendation.product.price) | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+                <div class="recommendation-actions">
+                  <a [routerLink]="['/catalogo', recommendation.product.slug]" (click)="state.close()">Ver producto</a>
+                  @if (auth.authenticated()) {
+                    <app-product-quantity
+                      [productId]="recommendation.product.id"
+                      [productName]="recommendation.product.name"
+                      addLabel="Agregar al carrito"
+                    />
+                  } @else {
+                    <a routerLink="/ingresar" (click)="state.close()">Ingresar para comprar</a>
+                  }
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>
+</dialog>

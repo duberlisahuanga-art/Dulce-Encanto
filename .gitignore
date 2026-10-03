@@ -1,0 +1,11 @@
+.env
+.idea/
+.vscode/
+backend/.env
+backend/.env.gemini
+backend/vendor/
+frontend/node_modules/
+frontend/dist/
+output/
+tmp/
+.agent-task.yaml

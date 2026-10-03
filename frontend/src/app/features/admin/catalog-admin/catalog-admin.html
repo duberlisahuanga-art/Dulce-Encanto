@@ -1,0 +1,367 @@
+<main>
+  <nav class="breadcrumbs" aria-label="Navegación del catálogo">
+    <a routerLink="/administracion/catalogo">Catálogo</a>
+    @if (view === 'categories') {
+      <span>/</span><strong>Categorías</strong>
+    }
+    @if (view === 'category-products') {
+      <span>/</span><a routerLink="/administracion/catalogo/categorias">Categorías</a> <span>/</span
+      ><strong>{{ selectedCategory()?.name ?? 'Productos' }}</strong>
+    }
+    @if (view === 'product-editor') {
+      <span>/</span><strong>{{ editingProductId() ? 'Editar producto' : 'Nuevo producto' }}</strong>
+    }
+  </nav>
+
+  @if (message()) {
+    <p class="notice success">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="notice error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="loading">Preparando el catálogo…</p>
+  } @else {
+    @if (view === 'summary') {
+      <header class="heading">
+        <div>
+          <p>Administración</p>
+          <h1>Catálogo</h1>
+          <span>Organiza categorías, productos, precios e imágenes.</span>
+        </div>
+        <div class="heading-actions">
+          <a class="button secondary" routerLink="/administracion/catalogo/categorias"
+            >Gestionar categorías</a
+          >
+          <a class="button" routerLink="/administracion/catalogo/productos/nuevo">Nuevo producto</a>
+        </div>
+      </header>
+
+      <section class="stats" aria-label="Resumen del catálogo">
+        <div>
+          <span>Productos</span><strong>{{ products().length }}</strong>
+        </div>
+        <div>
+          <span>Disponibles</span><strong>{{ availableCount() }}</strong>
+        </div>
+        <div>
+          <span>No disponibles</span><strong>{{ unavailableCount() }}</strong>
+        </div>
+        <div>
+          <span>Categorías</span><strong>{{ categories().length }}</strong>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Explorar</p>
+            <h2>Categorías</h2>
+          </div>
+          <span>Selecciona una categoría para administrar sus productos.</span>
+        </div>
+        <div class="category-grid">
+          @for (category of categories(); track category.id) {
+            <a
+              class="category-card"
+              [routerLink]="['/administracion/catalogo/categorias', category.slug]"
+            >
+              <span class="category-picture">
+                @if (categoryImage(category); as image) {
+                  <img [src]="image" [alt]="category.name" />
+                } @else {
+                  <b aria-hidden="true">🍰</b>
+                }
+              </span>
+              <span class="category-copy">
+                <small>{{ category.is_active ? 'Visible' : 'Oculta' }}</small>
+                <strong>{{ category.name }}</strong>
+                <span>{{ category.products_count ?? 0 }} productos</span>
+              </span>
+              <b class="arrow" aria-hidden="true">→</b>
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    @if (view === 'categories') {
+      <header class="heading compact-heading">
+        <div>
+          <p>Catálogo</p>
+          <h1>Categorías</h1>
+          <span>Define la organización principal de tus productos.</span>
+        </div>
+        <div class="heading-actions">
+          <a class="button secondary back-button" routerLink="/administracion/catalogo">
+            <span aria-hidden="true">←</span> Volver al catálogo
+          </a>
+          <button type="button" (click)="openNewCategory()">
+            <span aria-hidden="true">＋</span> Nueva categoría
+          </button>
+        </div>
+      </header>
+
+      @if (categoryEditorOpen()) {
+        <section class="editor-panel">
+          <div class="section-title">
+            <h2>{{ editingCategoryId() ? 'Editar categoría' : 'Nueva categoría' }}</h2>
+            <button
+              type="button"
+              class="icon-button"
+              aria-label="Cerrar"
+              (click)="closeCategoryEditor()"
+            >
+              ×
+            </button>
+          </div>
+          <form class="form-grid" [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
+            <label>Nombre <input formControlName="name" /></label>
+            <label
+              >Identificador <input formControlName="slug" placeholder="tortas-especiales"
+            /></label>
+            <label class="wide"
+              >Descripción <textarea formControlName="description"></textarea>
+            </label>
+            <label>Orden <input type="number" formControlName="sort_order" /></label>
+            <label class="check"
+              ><input type="checkbox" formControlName="is_active" /> Visible</label
+            >
+            <div class="actions wide">
+              <button type="button" class="secondary" (click)="closeCategoryEditor()">
+                Cancelar
+              </button>
+              <button type="submit" [disabled]="saving()">
+                {{ editingCategoryId() ? 'Guardar cambios' : 'Crear categoría' }}
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+
+      <section>
+        <div class="section-title list-heading">
+          <div><p>Organización</p><h2>Categorías registradas</h2></div>
+          <span class="total-count">{{ categories().length }} en total</span>
+        </div>
+        <div class="category-list">
+          @for (category of categories(); track category.id) {
+            <article>
+              <span class="mini-picture">
+                @if (categoryImage(category); as image) {
+                  <img [src]="image" [alt]="category.name" />
+                } @else {
+                  🍰
+                }
+              </span>
+              <div class="grow">
+                <strong>{{ category.name }}</strong>
+                <small>{{ category.products_count ?? 0 }} productos · {{ category.slug }}</small>
+              </div>
+              <span class="badge" [class.off]="!category.is_active">{{
+                category.is_active ? 'Visible' : 'Oculta'
+              }}</span>
+              <div class="row-actions">
+                <a
+                  class="text-link"
+                  [routerLink]="['/administracion/catalogo/categorias', category.slug]"
+                  >Productos</a
+                >
+                <button type="button" class="link" (click)="editCategory(category)">Editar</button>
+                <button type="button" class="link danger" (click)="removeCategory(category)">
+                  Eliminar
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+    @if (view === 'category-products') {
+      <header class="heading compact-heading">
+        <div>
+          <p>Categoría</p>
+          <h1>{{ selectedCategory()?.name ?? 'Productos' }}</h1>
+          <span>{{ selectedCategory()?.description }}</span>
+        </div>
+        <a
+          class="button"
+          routerLink="/administracion/catalogo/productos/nuevo"
+          [queryParams]="{ category: selectedCategory()?.slug }"
+          >Nuevo producto</a
+        >
+      </header>
+
+      @if (!selectedCategory()) {
+        <p class="empty">La categoría solicitada no existe.</p>
+      } @else {
+        <section>
+          <div class="filters">
+            <label class="search"
+              ><span>Buscar</span>
+              <input
+                type="search"
+                placeholder="Nombre o identificador"
+                [value]="query()"
+                (input)="query.set($any($event.target).value)"
+              />
+            </label>
+            <label
+              ><span>Estado</span>
+              <select
+                [value]="availability()"
+                (change)="availability.set($any($event.target).value)"
+              >
+                <option value="all">Todos</option>
+                <option value="available">Disponibles</option>
+                <option value="unavailable">No disponibles</option>
+              </select>
+            </label>
+            <span class="result-count">{{ visibleProducts().length }} resultados</span>
+          </div>
+
+          <div class="product-list">
+            @for (product of visibleProducts(); track product.id) {
+              <article>
+                <span class="product-picture">
+                  @if (product.image_url) {
+                    <img [src]="product.image_url" [alt]="product.name" />
+                  } @else {
+                    <b aria-hidden="true">🍰</b>
+                  }
+                </span>
+                <div class="product-copy">
+                  <strong>{{ product.name }}</strong>
+                  <small>{{ product.slug }}</small>
+                </div>
+                <strong class="price">{{
+                  +product.price | currency: 'PEN' : 'symbol' : '1.2-2'
+                }}</strong>
+                <span class="badge" [class.off]="!product.is_active || !product.is_available">
+                  {{
+                    !product.is_active ? 'Oculto' : product.is_available ? 'Disponible' : 'Agotado'
+                  }}
+                </span>
+                <div class="row-actions">
+                  <a
+                    class="text-link"
+                    [routerLink]="['/administracion/catalogo/productos', product.id]"
+                    >Editar</a
+                  >
+                  <button type="button" class="link danger" (click)="removeProduct(product)">
+                    Eliminar
+                  </button>
+                </div>
+              </article>
+            } @empty {
+              <p class="empty">No hay productos que coincidan con los filtros.</p>
+            }
+          </div>
+        </section>
+      }
+    }
+
+    @if (view === 'product-editor') {
+      <header class="heading compact-heading">
+        <div>
+          <p>Producto</p>
+          <h1>{{ editingProductId() ? 'Editar producto' : 'Nuevo producto' }}</h1>
+          <span>Completa la información comercial y la imagen del producto.</span>
+        </div>
+      </header>
+
+      <form class="product-editor" [formGroup]="productForm" (ngSubmit)="saveProduct()">
+        <section>
+          <div class="section-title">
+            <div>
+              <p>Información</p>
+              <h2>Datos principales</h2>
+            </div>
+          </div>
+          <div class="form-grid">
+            <label
+              >Categoría
+              <select formControlName="category_id">
+                @for (category of categories(); track category.id) {
+                  <option [value]="category.id">{{ category.name }}</option>
+                }
+              </select>
+            </label>
+            <label>Nombre <input formControlName="name" /></label>
+            <label
+              >Identificador <input formControlName="slug" placeholder="torta-chocolate"
+            /></label>
+            <label
+              >Precio (S/) <input type="number" min="0" step="0.01" formControlName="price"
+            /></label>
+            <label class="wide"
+              >Descripción <textarea formControlName="description"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-title">
+            <div>
+              <p>Presentación</p>
+              <h2>Imagen</h2>
+            </div>
+          </div>
+          <div class="image-editor">
+            <span class="image-preview">
+              @if (selectedImagePreview()) {
+                <img [src]="selectedImagePreview()" alt="Vista previa del producto" />
+              } @else {
+                <b aria-hidden="true">🍰</b><small>Sin imagen</small>
+              }
+            </span>
+            <div>
+              <label
+                >Seleccionar archivo
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  (change)="selectImage($event)"
+                />
+              </label>
+              <small>Formatos permitidos: WebP, PNG o JPG.</small>
+              @if (editingProductId()) {
+                <label class="check"
+                  ><input type="checkbox" formControlName="remove_image" /> Quitar imagen
+                  actual</label
+                >
+              }
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-title">
+            <div>
+              <p>Publicación</p>
+              <h2>Disponibilidad</h2>
+            </div>
+          </div>
+          <div class="switches">
+            <label class="check"
+              ><input type="checkbox" formControlName="is_available" /> Disponible para
+              pedidos</label
+            >
+            <label class="check"
+              ><input type="checkbox" formControlName="is_active" /> Visible en el catálogo</label
+            >
+          </div>
+        </section>
+
+        <footer class="editor-actions">
+          <a class="button secondary" routerLink="/administracion/catalogo">Cancelar</a>
+          <button type="submit" [disabled]="saving() || !categories().length">
+            {{ saving() ? 'Guardando…' : 'Guardar producto' }}
+          </button>
+        </footer>
+      </form>
+    }
+  }
+</main>

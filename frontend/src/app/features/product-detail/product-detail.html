@@ -1,0 +1,98 @@
+<main>
+  @if (loading()) {
+    <p class="status">Cargando producto…</p>
+  } @else if (!product()) {
+    <section class="not-found">
+      <span>🍰</span>
+      <h1>Producto no disponible</h1>
+      <p>{{ error() }}</p>
+      <a routerLink="/catalogo">Volver al catálogo</a>
+    </section>
+  } @else {
+    <nav class="breadcrumb">
+      <a routerLink="/catalogo">Catálogo</a><span>›</span
+      ><span>{{ product()!.category?.name }}</span
+      ><span>›</span><b>{{ product()!.name }}</b>
+    </nav>
+    <section class="product-layout">
+      <div class="image-panel">
+        @if (product()!.image_url) {
+          <img [src]="product()!.image_url" [alt]="product()!.name" (error)="imageFailed($event)" />
+        }
+        <span>🧁</span><em>Disponible</em>
+      </div>
+      <div class="information">
+        <small>{{ product()!.category?.name ?? 'Dulce Encanto' }}</small>
+        <h1>{{ product()!.name }}</h1>
+        @if (auth.authenticated()) {
+          <button
+            type="button"
+            class="favorite-action"
+            [class.active]="favorites.isFavorite(product()!.id)"
+            (click)="toggleFavorite()"
+          >
+            {{ favorites.isFavorite(product()!.id) ? '♥ Guardado en favoritos' : '♡ Guardar favorito' }}
+          </button>
+        }
+        <strong class="price">{{
+          +product()!.price | currency: 'PEN' : 'symbol' : '1.2-2'
+        }}</strong>
+        <p class="description">
+          {{
+            product()!.description ||
+              'Producto preparado artesanalmente con ingredientes seleccionados.'
+          }}
+        </p>
+        <div class="availability"><b>✓ Disponible</b><span>Preparado por Dulce Encanto</span></div>
+        <div class="purchase">
+          <div class="quantity">
+            <button type="button" (click)="changeQuantity(-1)">−</button
+            ><strong>{{ quantity() }}</strong
+            ><button type="button" (click)="changeQuantity(1)">+</button>
+          </div>
+          @if (auth.authenticated()) {
+            <button class="add" type="button" [disabled]="adding()" (click)="addToCart()">
+              {{ adding() ? 'Agregando…' : 'Agregar al carrito' }}
+            </button>
+          } @else {
+            <a class="add" routerLink="/ingresar">Ingresar para comprar</a>
+          }
+        </div>
+        @if (message()) {
+          <p class="notice success">✓ {{ message() }} <a routerLink="/carrito">Ver carrito</a></p>
+        }
+        @if (error()) {
+          <p class="notice error">{{ error() }}</p>
+        }
+        <ul class="benefits">
+          <li>Elaboración artesanal</li>
+          <li>Precio actualizado</li>
+          <li>Compra segura con tu cuenta</li>
+        </ul>
+      </div>
+    </section>
+    @if (related().length) {
+      <section class="related">
+        <div>
+          <small>También te puede gustar</small>
+          <h2>Productos relacionados</h2>
+        </div>
+        <div class="related-grid">
+          @for (item of related(); track item.id) {
+            <a [routerLink]="['/catalogo', item.slug]"
+              ><span>
+                @if (item.image_url) {
+                  <img [src]="item.image_url" [alt]="item.name" />
+                } @else {
+                  🧁
+                }
+              </span>
+              <h3>{{ item.name }}</h3>
+              <strong>{{ +item.price | currency: 'PEN' : 'symbol' : '1.2-2' }}</strong></a
+            >
+          }
+        </div>
+      </section>
+    }
+  }
+</main>

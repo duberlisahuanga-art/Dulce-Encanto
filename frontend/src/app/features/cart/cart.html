@@ -1,0 +1,107 @@
+<main>
+  <header>
+    <p>Tu selección</p>
+    <h1>Carrito</h1>
+    @if (cart(); as c) { <p>{{ c.items_count }} {{ c.items_count === 1 ? 'producto seleccionado' : 'productos seleccionados' }}</p> }
+  </header>
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  @if (loading()) {
+    <p class="status">Cargando…</p>
+
+  } @else if (!cart()?.items?.length) {
+    <section class="empty">
+      <span>🧁</span>
+      <h2>Tu carrito está vacío</h2>
+      <a routerLink="/catalogo">Ver catálogo</a>
+    </section>
+  } @else {
+    <section class="layout">
+      <div class="items">
+        @for (item of cart()!.items; track item.id) {
+          <article class="cart-item" [class.has-promotion]="!!item.promotion">
+            <div class="product-image">
+              @if (item.image_url) {
+                <img [src]="item.image_url" [alt]="item.name" />
+              } @else {
+                <span aria-hidden="true">{{ item.type === 'custom_cake' ? '🎂' : '🧁' }}</span>
+              }
+            </div>
+            <div class="product-info">
+              <small>{{ item.type === 'custom_cake' ? 'Diseño personalizado' : 'Producto' }}</small>
+              <h2>{{ item.name }}</h2>
+              @if (item.promotion; as promotion) {
+                <div class="promotion-heading">
+                  <span class="discount-badge">{{ promotionLabel(item) }}</span>
+                  <strong>{{ promotion.name }}</strong>
+                </div>
+                <p class="promotion-copy">
+                  Promoción aplicada a este producto. Ahorras
+                  <b>{{ +promotion.savings | currency: 'PEN' : 'S/ ' : '1.2-2' }}</b>.
+                </p>
+                <div class="item-prices">
+                  <del>{{ +item.subtotal | currency: 'PEN' : 'S/ ' : '1.2-2' }}</del>
+                  <strong>{{ +item.total | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+                </div>
+              } @else {
+                <span class="unit-price">{{ +item.unit_price | currency: 'PEN' : 'S/ ' : '1.2-2' }} c/u</span>
+              }
+            </div>
+            <div class="item-actions">
+              <div class="quantity" aria-label="Cantidad">
+                <button type="button" aria-label="Disminuir cantidad" (click)="change(item.id, item.quantity - 1)">−</button>
+                <strong>{{ item.quantity }}</strong>
+                <button type="button" [disabled]="item.quantity >= cart()!.limits.per_product || cart()!.items_count >= cart()!.limits.per_order" aria-label="Aumentar cantidad" (click)="change(item.id, item.quantity + 1)">+</button>
+              </div>
+              @if (!item.promotion) {
+                <strong class="regular-total">{{ +item.total | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+              }
+              <button type="button" class="remove" (click)="remove(item.id)">Eliminar</button>
+            </div>
+          </article>
+        }
+      </div>
+      <aside class="summary">
+        <div class="summary-title">
+          <div><small>Resumen</small><h2>Tu pedido</h2></div>
+          <span>{{ cart()!.items_count }} {{ cart()!.items_count === 1 ? 'producto' : 'productos' }}</span>
+        </div>
+        <section class="coupon">
+          <div class="coupon-title"><span aria-hidden="true">🏷️</span><div><b>Cupón de descuento</b></div></div>
+          @if (cart()?.coupon; as coupon) {
+            <div class="applied-coupon">
+              <span>Cupón aplicado</span>
+              <strong>{{ coupon.code }}</strong>
+              <p>{{ coupon.name }}</p>
+              @if (+coupon.minimum_purchase > 0) {
+                <div class="minimum-row"><span>Compra mínima</span><b>{{ +coupon.minimum_purchase | currency: 'PEN' : 'S/ ' : '1.2-2' }}</b></div>
+                <div class="progress" role="progressbar" [attr.aria-valuenow]="couponProgress()" aria-valuemin="0" aria-valuemax="100"><span [style.width.%]="couponProgress()"></span></div>
+                @if (!coupon.is_eligible) {
+                  <p class="minimum-warning">Agrega <b>{{ +coupon.amount_remaining | currency: 'PEN' : 'S/ ' : '1.2-2' }}</b> más para volver a activar este cupón.</p>
+                } @else {
+                  <p class="minimum-success">✓ Cumpliste la compra mínima.</p>
+                }
+              }
+              <button type="button" class="remove-coupon" (click)="removeCoupon()">Quitar cupón</button>
+            </div>
+          } @else {
+            <div class="coupon-form"><input [ngModel]="couponCode()" (ngModelChange)="couponCode.set($event)" (keyup.enter)="applyCoupon()" aria-label="Código de cupón" placeholder="Código de cupón" /><button type="button" [disabled]="applyingCoupon()" (click)="applyCoupon()">{{ applyingCoupon() ? 'Validando…' : 'Aplicar' }}</button></div>
+          }
+          @if (couponMessage()) { <p class="coupon-message" [class.message-error]="couponError()">{{ couponMessage() }}</p> }
+        </section>
+        <div class="price-breakdown">
+          <div><span>Productos</span><strong>{{ +cart()!.subtotal | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong></div>
+          @if (+cart()!.discount > 0) {
+            <div class="discount-total"><span>Descuentos</span><strong>− {{ +cart()!.discount | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong></div>
+          }
+          <div class="delivery-note"><span>Delivery</span><small>{{ cart()!.free_delivery ? 'Gratis con este cupón' : 'Se calcula en el siguiente paso' }}</small></div>
+        </div>
+        <div class="grand-total">
+          <b>Total</b><strong>{{ +cart()!.total | currency: 'PEN' : 'S/ ' : '1.2-2' }}</strong>
+        </div>
+        @if (+cart()!.discount > 0) { <p class="total-savings">🎉 Estás ahorrando <b>{{ +cart()!.discount | currency: 'PEN' : 'S/ ' : '1.2-2' }}</b></p> }
+        <a class="checkout" routerLink="/finalizar-pedido">Continuar al pedido</a
+        ><button class="clear" (click)="clear()">Vaciar carrito</button>
+      </aside>
+    </section>
+  }
+</main>
